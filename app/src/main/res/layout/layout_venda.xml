@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp">
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:id="@+id/venda_nomeCliente"
+        android:hint="Nome do Cliente/Empresa" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:ems="10"
+        android:id="@+id/venda_cpfcnpj"
+        android:layout_below="@+id/venda_nomeCliente"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:hint="CPF/CNPJ" />
+
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/venda_listItens"
+        android:layout_above="@+id/venda_confirmar"
+        android:layout_below="@+id/venda_cpfcnpj" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Confirmar"
+        android:id="@+id/venda_confirmar"
+        android:onClick="onClickConfirmar"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Produto"
+        android:id="@+id/venda_addProduto"
+        android:onClick="onClickAddProduto"
+        android:layout_alignTop="@+id/venda_nomeCliente"
+        android:layout_alignRight="@+id/venda_listItens"
+        android:layout_alignEnd="@+id/venda_listItens"
+        android:layout_alignLeft="@+id/venda_confirmar"
+        android:layout_alignStart="@+id/venda_confirmar"
+        android:layout_alignBottom="@+id/venda_cpfcnpj" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Total:"
+        android:id="@+id/textView3"
+        android:layout_alignBottom="@+id/venda_confirmar"
+        android:layout_alignLeft="@+id/venda_listItens"
+        android:layout_alignStart="@+id/venda_listItens"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="5dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="R$ 0.00"
+        android:id="@+id/venda_total"
+        android:layout_alignBottom="@+id/textView3"
+        android:layout_toRightOf="@+id/textView3"
+        android:layout_toEndOf="@+id/textView3"
+        android:textColor="@android:color/holo_green_dark" />
+
+</RelativeLayout>
