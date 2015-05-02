@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.util.Log;
 
 import com.alimec.joaquim.alimecproject.venda.Produto;
 
@@ -43,14 +44,14 @@ public class ProdutoRepository {
 
                 long insertResult = db.insertOrThrow(Produto.Tabela.TABLE_NAME, null, values);
             }
-            this.produtos = getProdutosFromDatabase();
             db.setTransactionSuccessful();
         }catch(SQLException e){
             e.printStackTrace();
         }
         db.endTransaction();
 
-
+        this.produtos = getProdutosFromDatabase();
+        Log.d("PRODUTOS",produtos.length+"");
     }
 
     public Produto[] getProdutos(){

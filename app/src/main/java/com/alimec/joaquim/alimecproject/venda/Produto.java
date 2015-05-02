@@ -9,7 +9,8 @@ import java.io.Serializable;
 /**
  * Created by KithLenovo on 23/01/2015.
  */
-public class Produto implements Serializable{
+public class Produto implements Serializable,Comparable<Produto>{
+
 
     public static enum Tabela{
         CODIGO("codigo"),
@@ -55,5 +56,25 @@ public class Produto implements Serializable{
     @Override
     public String toString() {
         return codigo+" - "+descricao;
+    }
+
+    @Override
+    public boolean equals(Object another) {
+
+        if(another == null || !(another instanceof Produto)){
+            return false;
+        }
+        return this.getCodigo().equals(((Produto) another).getCodigo())
+                                        &&
+               this.getDescricao().equals(((Produto) another).getDescricao());
+    }
+
+    @Override
+    public int compareTo(Produto another) {
+
+        if(another == null){
+            return 1;
+        }
+        return another.getCodigo().compareTo(another.getCodigo());
     }
 }

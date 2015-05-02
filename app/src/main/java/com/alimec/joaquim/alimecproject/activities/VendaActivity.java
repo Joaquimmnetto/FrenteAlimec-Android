@@ -1,23 +1,26 @@
-package com.alimec.joaquim.alimecproject;
+package com.alimec.joaquim.alimecproject.activities;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.alimec.joaquim.alimecproject.persistence.DatabaseHelper;
-import com.alimec.joaquim.alimecproject.persistence.VendaDAO;
+import com.alimec.joaquim.alimecproject.controle.VendaController;
+import com.alimec.joaquim.alimecproject.view.ProdutoAdapter;
+import com.alimec.joaquim.alimecproject.view.ProdutoDialogFragment;
+import com.alimec.joaquim.alimecproject.R;
 import com.alimec.joaquim.alimecproject.venda.Venda;
 import com.alimec.joaquim.alimecproject.venda.Item;
-import com.alimec.joaquim.alimecproject.ws.ServerServices;
 
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.Date;
 
 
@@ -25,9 +28,13 @@ public class VendaActivity extends ActionBarActivity {
 
     public static final String PROD_SELECIONADO = "PROD_SELECIONADO";
 
-    private Venda venda;
+    public static final String VENDA_SHARED_PREF = "VENDA_PREFS";
+
+
+    private Venda venda = new Venda();
     private ProdutoAdapter adapter;
     private ListView produtoList;
+    private VendaController controler = new VendaController();
 
 
     @Override
@@ -36,6 +43,37 @@ public class VendaActivity extends ActionBarActivity {
         setContentView(R.layout.layout_venda);
         init();
         setListeners();
+    }
+
+    @Override
+    protected void onStop() {
+        SharedPreferences pref = getPreferences(MODE_PRIVATE);
+
+        preencherVenda(venda);
+        pref.edit().putString(VENDA_SHARED_PREF,venda.toJSON().toString());
+        pref.edit().apply();
+
+
+        super.onStop();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+        SharedPreferences pref = getPreferences(MODE_PRIVATE);
+
+        String jsonStr = pref.getString(VENDA_SHARED_PREF, null);
+        if(jsonStr != null){
+            venda = Venda.fromJSON(jsonStr);
+        }
+
+        init();
+        setListeners();
+        atualizarTotal();
+
+        adapter.notifyDataSetChanged();
+
     }
 
     private void setListeners() {
@@ -49,44 +87,25 @@ public class VendaActivity extends ActionBarActivity {
     }
 
     private void init() {
-        venda = new Venda();
-        adapter = new ProdutoAdapter(getApplicationContext(), venda.getProdutos());
+        adapter = new ProdutoAdapter(getApplicationContext(), venda);
         produtoList = ((ListView) findViewById(R.id.venda_listItens));
         produtoList.setAdapter(adapter);
 
-    }
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     public void addVendaProduto(Item prod) {
         prod.setVenda(venda);
         venda.getProdutos().add(prod);
         adapter.notifyDataSetChanged();
+
+        atualizarTotal();
         //meu amor, essa a ultima oracao, pra salvar seu coracao, coracao nao e tao simples quanto pensa, nele cabe o que nao cabe na dispensa
         //cabe o meu amor, cabe 3 vidas inteiras, cabe uma penteadeira, cabe nos dois... e cabe ate o[...]
     }
+
+
 
     public void removerVendaProduto(Item produto) {
         venda.getProdutos().remove(produto);
@@ -94,10 +113,8 @@ public class VendaActivity extends ActionBarActivity {
 
 
     public void onClickConfirmar(View view) {
-        //TODO: Criar layout do dialog dos modos de pgto.
-        //TODO: Mostrar dialog de modos de pgto, antes de confirmar.
 
-        //TODO: Mostrar resumo da venda no dialog de confirmacao.
+        preencherVenda(venda);
 
         AlertDialog confirmDialog = new AlertDialog.Builder(this)
                 .setTitle("Confirmar Venda")
@@ -105,15 +122,12 @@ public class VendaActivity extends ActionBarActivity {
                 .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (venda.getProdutos().size() == 0) {
-                            Toast.makeText(getApplicationContext(),"Essa venda não tem produtos!",Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                        venda.setData(new Date());
-                        venda.setNomeCliente(((TextView) findViewById(R.id.venda_nomeCliente)).getText().toString());
-                        venda.setCpfCnpj(((TextView) findViewById(R.id.venda_cpfcnpj)).getText().toString());
-                        new VendaDAO(DatabaseHelper.getInstance()).addVenda(venda);
-                        //ServerServices.uploadVenda(venda);
+                    if (venda.getProdutos().size() == 0) {
+                        Toast.makeText(getApplicationContext(),"Essa venda não tem produtos!",Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    enviarVenda();
+
                     }
                 }).setNegativeButton("Não", new DialogInterface.OnClickListener() {
                     @Override
@@ -122,10 +136,22 @@ public class VendaActivity extends ActionBarActivity {
                     }
                 }).create();
 
+        confirmDialog.setMessage("Você deseja realizar essa venda?\n"+venda.toString());
 
         confirmDialog.show();
     }
 
+    private void enviarVenda(){
+
+        try {
+            controler.enviarVenda(preencherVenda(venda));
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     public void onClickAddProduto(View view) {
         ProdutoDialogFragment dialog = new ProdutoDialogFragment();
@@ -140,6 +166,24 @@ public class VendaActivity extends ActionBarActivity {
         dialog.setArguments(args);
 
         dialog.show(getFragmentManager(), "produtoEdit");
+    }
+
+
+    private void atualizarTotal() {
+        double total = 0;
+        for(Item item:venda.getProdutos()){
+            total+=item.getPrecoTotal();
+        }
+
+        ((TextView)findViewById(R.id.venda_total)).setText(String.format("%.2f",total));
+    }
+
+    private Venda preencherVenda(Venda venda){
+        venda.setData(new Date());
+        venda.setNomeCliente(((TextView) findViewById(R.id.venda_nomeCliente)).getText().toString());
+        venda.setCpfCnpj(((TextView) findViewById(R.id.venda_cpfcnpj)).getText().toString());
+
+        return venda;
     }
 
 }

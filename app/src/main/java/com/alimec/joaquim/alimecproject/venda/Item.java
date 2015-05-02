@@ -11,7 +11,7 @@ import java.io.Serializable;
 /**
  * Created by KithLenovo on 23/01/2015.
  */
-public class Item implements Serializable{
+public class Item implements Serializable,JSONable{
 
 
 
@@ -62,21 +62,21 @@ public class Item implements Serializable{
     private double precoTotal;
     private String comentario;
 
-//    public static Item buildWithJSON(String json) throws JSONException {
-//
-//        JSONObject object = new JSONObject(json);
-//
-//        String prodCode = object.getString(Tabela.COD_PRODUTO.toString());
-//        String vendaCode = object.getString(Tabela.COD_VENDA.toString());
-//        double quantidade = object.getDouble(Tabela.QUANTIDADE.toString());
-//        String unidade = object.getString(Tabela.UNIDADE.toString());
-//        double precoUnitario = object.getDouble(Tabela.PRECO_UNITARIO.toString());
-//        double descontos = object.getDouble(Tabela.DESCONTOS.toString());
-//        String meioPgto = object.getString(Tabela.MEIO_PGTO.toString());
-//        double precoTotal = object.getDouble(Tabela.PRECO_TOTAL.toString());
-//
-//        return new Item(ProdutoRepository.getInstance().getProduto(prodCode),null,quantidade,unidade,precoUnitario,descontos,meioPgto,precoTotal);
-//    }
+    public static Item fromJSON(Venda venda, JSONObject object) throws JSONException {
+
+
+
+        String prodCode = object.getString(ServerServices.ItemJSONArgs.CODITEM.toString());
+        double quantidade = object.getDouble(ServerServices.ItemJSONArgs.QUANTIDADE.toString());
+        String unidade = object.getString(ServerServices.ItemJSONArgs.UNIDADE.toString());
+        String meioPgto = object.getString(ServerServices.ItemJSONArgs.MEIO_PGTO.toString());
+        double precoTotal = object.getDouble(ServerServices.ItemJSONArgs.VALOR_TOTAL.toString());
+        String comentario = object.getString(ServerServices.ItemJSONArgs.COMPLEMENTO.toString());
+
+        double precoUnitario = precoTotal/quantidade;
+
+        return new Item(ProdutoRepository.getInstance().getProduto(prodCode),venda,quantidade,unidade,precoUnitario,0.0,meioPgto,precoTotal,comentario);
+    }
 
     public Item(Produto produto, Venda venda, double quantidade, String unidade, double precoUnitario, double descontos,String meioPgto, double precoTotal,String comentario) {
         this.produto = produto;
@@ -159,22 +159,30 @@ public class Item implements Serializable{
         this.comentario = comentario;
     }
 
-    public JSONObject toJSON() throws JSONException {
+    @Override
+    public String toString(){
+        return quantidade+" "+unidade+"x"+produto+" = "+precoTotal;
+    }
 
 
-        JSONObject obj = new JSONObject();
+    public JSONObject toJSON(){
 
-        obj.put(ServerServices.JSONArgs.CODITEM.toString(),produto.getCodigo());
-        obj.put(ServerServices.JSONArgs.DATA.toString(),String.valueOf(venda.getData().getTime()));
-        obj.put(ServerServices.JSONArgs.QUANTIDADE.toString(),getQuantidade());
-        obj.put(ServerServices.JSONArgs.UNIDADE.toString(),getUnidade());
-        obj.put(ServerServices.JSONArgs.MEIO_PAGAMENTO.toString(),getMeioPgto());
-        obj.put(ServerServices.JSONArgs.VALOR_TOTAL.toString(),getPrecoTotal());
-        obj.put(ServerServices.JSONArgs.CLIENTE.toString(),getVenda().getNomeCliente());
-        obj.put(ServerServices.JSONArgs.COMPLEMENTO.toString(),getComentario());
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put(ServerServices.ItemJSONArgs.CODITEM.toString(),produto.getCodigo());
+            obj.put(ServerServices.ItemJSONArgs.DATA.toString(),String.valueOf(venda.getData().getTime()));
+            obj.put(ServerServices.ItemJSONArgs.QUANTIDADE.toString(),getQuantidade());
+            obj.put(ServerServices.ItemJSONArgs.UNIDADE.toString(),getUnidade());
+            obj.put(ServerServices.ItemJSONArgs.MEIO_PGTO.toString(),getMeioPgto());
+            obj.put(ServerServices.ItemJSONArgs.VALOR_TOTAL.toString(),getPrecoTotal());
+            obj.put(ServerServices.ItemJSONArgs.CLIENTE.toString(),getVenda().getNomeCliente());
+            obj.put(ServerServices.ItemJSONArgs.COMPLEMENTO.toString(),getComentario());
+            return obj;
 
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
 
-
-        return obj;
     }
 }

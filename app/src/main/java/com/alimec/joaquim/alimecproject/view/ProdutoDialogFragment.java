@@ -1,4 +1,4 @@
-package com.alimec.joaquim.alimecproject;
+package com.alimec.joaquim.alimecproject.view;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -14,6 +14,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alimec.joaquim.alimecproject.R;
+import com.alimec.joaquim.alimecproject.activities.VendaActivity;
 import com.alimec.joaquim.alimecproject.persistence.ProdutoRepository;
 import com.alimec.joaquim.alimecproject.venda.Produto;
 import com.alimec.joaquim.alimecproject.venda.Item;
@@ -26,15 +28,13 @@ public class ProdutoDialogFragment extends DialogFragment {
 
 
     private Produto prodSelecionado = null;
-    private Item produto = null;
+    private Item item = null;
     private AutoCompleteTextView descricao;
     private EditText quantidade;
     private EditText unidade;
     private EditText precoUnitario;
     private Spinner modoPgto;
     private EditText precoTotal;
-    private EditText comentario;
-
     private DialogInterface.OnClickListener positiveAction = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
@@ -42,30 +42,30 @@ public class ProdutoDialogFragment extends DialogFragment {
                 descricao.requestFocusFromTouch();
 
                 double qtd = getDouble(quantidade);
-                String und = unidade.getText().toString();
+                String und = unidade.getText().toString().isEmpty() ? "UN" : unidade.getText().toString();
                 double precoUn = getDouble(precoUnitario);
                 double total = getDouble(precoTotal);
+                String comentarioStr = comentario.getText().toString();
+                String meioPgto = modoPgto.getSelectedItem().toString();
 
+                //Caso de edicao{
                 if (prodSelecionado == null) {
-                    if(produto == null) {
-                        throw new IllegalArgumentException("Selecione um produto!");
-                    }else{
-                        prodSelecionado = produto.getProduto();
+                    if (item == null) {
+                        throw new IllegalArgumentException("Selecione um item!");
+                    } else {
+                        prodSelecionado = item.getProduto();
                     }
                 }
-                Produto p = ProdutoRepository.getInstance().getProduto(prodSelecionado.getCodigo());
-                if (p == null) {
-                    throw new IllegalArgumentException("Esse codigo não existe!");
-                }
-                if (produto != null) {
-                    ((VendaActivity) getActivity()).removerVendaProduto(produto);
-                }
 
-                String meioPgto = modoPgto.getSelectedItem().toString();
-                String comentarioStr = comentario.getText().toString();
+                if (item != null) {
+                    ((VendaActivity) getActivity()).removerVendaProduto(item);
+                }
+                //}
 
-                produto = new Item(p, null, qtd, und, precoUn, 0.0, meioPgto, total, comentarioStr);
-                ((VendaActivity) getActivity()).addVendaProduto(produto);
+
+
+                item = new Item(prodSelecionado, null, qtd, und, precoUn, 0.0, meioPgto, total, comentarioStr);
+                ((VendaActivity) getActivity()).addVendaProduto(item);
 
             } catch (NumberFormatException e) {
                 Toast.makeText(getActivity(), "Precos, desconto e quantidade devem ser números!", Toast.LENGTH_LONG).show();
@@ -74,15 +74,16 @@ public class ProdutoDialogFragment extends DialogFragment {
                 Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
                 e.printStackTrace();
             }
-        }};
-
+        }
+    };
+    private EditText comentario;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         View dialogView = View.inflate(getActivity(), R.layout.fragment_produto, null);
 
         init(dialogView);
-        if(produto != null) {
+        if (item != null) {
             preencherValorArgumentos(dialogView);
         }
         setAutoCompleteListeners(dialogView);
@@ -97,18 +98,18 @@ public class ProdutoDialogFragment extends DialogFragment {
     }
 
     private void preencherValorArgumentos(View dialogView) {
-        descricao.setText(produto.getProduto().toString());
-        quantidade.setText(String.format("%.2f", produto.getQuantidade()));
-        unidade.setText(produto.getUnidade());
-        precoUnitario.setText(String.format("%.2f", produto.getPrecoUnitario()));
-        precoTotal.setText(String.format("%.2f", produto.getPrecoTotal()));
+        descricao.setText(item.getProduto().toString());
+        quantidade.setText(String.format("%.2f", item.getQuantidade()));
+        unidade.setText(item.getUnidade());
+        precoUnitario.setText(String.format("%.2f", item.getPrecoUnitario()));
+        precoTotal.setText(String.format("%.2f", item.getPrecoTotal()));
 
     }
 
     private void init(View parent) {
 
-        if(getArguments() != null) {
-            produto = (Item) getArguments().getSerializable(VendaActivity.PROD_SELECIONADO);
+        if (getArguments() != null) {
+            item = (Item) getArguments().getSerializable(VendaActivity.PROD_SELECIONADO);
         }
         descricao = (AutoCompleteTextView) parent.findViewById(R.id.produto_descricao);
         quantidade = (EditText) parent.findViewById(R.id.produto_quantidade);
@@ -120,10 +121,10 @@ public class ProdutoDialogFragment extends DialogFragment {
     }
 
     private void setCalculosListeners() {
-        View.OnFocusChangeListener atualizarPrecos = new View.OnFocusChangeListener(){
+        View.OnFocusChangeListener atualizarPrecos = new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(!hasFocus) {
+                if (!hasFocus) {
                     atualizarPrecos(v);
                 }
             }
@@ -133,9 +134,9 @@ public class ProdutoDialogFragment extends DialogFragment {
         precoTotal.setOnFocusChangeListener(atualizarPrecos);
 
 
-
     }
-    private void atualizarPrecos(View focused){
+
+    private void atualizarPrecos(View focused) {
         double qtdVal = quantidade.getText().toString().isEmpty() ? 0.0 : getDouble(quantidade); //valor fixo
         double precoUntVal = precoUnitario.getText().toString().isEmpty() ? 0.0 : getDouble(precoUnitario); //varia c/ calculos
         double precoTotVal = precoTotal.getText().toString().isEmpty() ? 0.0 : getDouble(precoTotal); //varia c/ calculos
@@ -154,15 +155,15 @@ public class ProdutoDialogFragment extends DialogFragment {
     }
 
 
-    private double getDouble(TextView entrada){
-        try{
+    private double getDouble(TextView entrada) {
+        try {
             String entradaTxt = entrada.getText().toString();
-            entradaTxt = entradaTxt.replace(',','.');
+            entradaTxt = entradaTxt.replace(',', '.');
 
             return Double.parseDouble(entradaTxt);
-        }catch(NumberFormatException e){
+        } catch (NumberFormatException e) {
             e.printStackTrace();
-            Toast.makeText(getActivity().getApplicationContext(),"Somente valores numéricos permitidos!",Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity().getApplicationContext(), "Somente valores numéricos permitidos!", Toast.LENGTH_LONG).show();
             return 0.0;
         }
 
@@ -170,7 +171,7 @@ public class ProdutoDialogFragment extends DialogFragment {
 
     private void setAutoCompleteListeners(View parent) {
 
-        modoPgto.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1,getActivity().getResources().getStringArray(R.array.meio_pagamento)));
+        modoPgto.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, getActivity().getResources().getStringArray(R.array.meio_pagamento)));
 
         descricao.setAdapter(new ArrayAdapter<Produto>(getActivity(), android.R.layout.simple_list_item_1, ProdutoRepository.getInstance().getProdutos()));
 

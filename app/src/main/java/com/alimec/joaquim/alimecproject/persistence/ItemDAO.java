@@ -51,9 +51,10 @@ class ItemDAO {
 
     }
 
-    public Item[] getItens(Venda venda){
-        List<Item> produtos = new ArrayList<Item>();
+    public Item[] getItensFromVenda(Venda venda){
+        List<Item> produtos = new ArrayList<>();
         String where = Item.Tabela.COD_VENDA+"="+venda.getData().getTime();
+
         Cursor c = db.query(Item.Tabela.TABLE_NAME,null,where,null,null,null,null);
         while(c.moveToNext()){
             produtos.add(parseItem(c, venda));
