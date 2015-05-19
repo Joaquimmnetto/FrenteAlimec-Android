@@ -27,7 +27,7 @@ public class NetworkStateReceiver extends BroadcastReceiver{
         NetworkInfo wifiInfo = commManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
 
-        if(wifiInfo.isAvailable() && ServerServices.isServerReachable()){
+        if(wifiInfo.isAvailable() && ServerServices.isServerVisivel()){
             try {
                 new VendaController().enviarVendasPendentes();
             } catch (IOException e) {

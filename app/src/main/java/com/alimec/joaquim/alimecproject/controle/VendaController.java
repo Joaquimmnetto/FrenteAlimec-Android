@@ -3,7 +3,7 @@ package com.alimec.joaquim.alimecproject.controle;
 import com.alimec.joaquim.alimecproject.configs.ConfiguracaoPrivada;
 import com.alimec.joaquim.alimecproject.persistence.DatabaseHelper;
 import com.alimec.joaquim.alimecproject.persistence.VendaDAO;
-import com.alimec.joaquim.alimecproject.venda.Venda;
+import com.alimec.joaquim.alimecproject.entidades.Venda;
 import com.alimec.joaquim.alimecproject.ws.ServerServices;
 
 import org.json.JSONException;

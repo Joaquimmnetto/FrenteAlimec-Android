@@ -5,9 +5,9 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.alimec.joaquim.alimecproject.venda.Item;
-import com.alimec.joaquim.alimecproject.venda.Produto;
-import com.alimec.joaquim.alimecproject.venda.Venda;
+import com.alimec.joaquim.alimecproject.entidades.Item;
+import com.alimec.joaquim.alimecproject.entidades.Produto;
+import com.alimec.joaquim.alimecproject.entidades.Venda;
 
 import java.util.ArrayList;
 import java.util.List;

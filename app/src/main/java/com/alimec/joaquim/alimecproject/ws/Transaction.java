@@ -62,8 +62,7 @@ public class Transaction {
                     while(true){
                         readen = in.read();
 
-                        if(readen < 0 || readen > 254){
-                            Log.e("Fuck excel","MASOQQQQQQQQQ");break;}
+                        if(readen < 0 || readen > 254){break;}
 
                         response.write((char)readen);
                     }

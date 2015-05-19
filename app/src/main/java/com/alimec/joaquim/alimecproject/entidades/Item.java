@@ -1,4 +1,4 @@
-package com.alimec.joaquim.alimecproject.venda;
+package com.alimec.joaquim.alimecproject.entidades;
 
 import com.alimec.joaquim.alimecproject.persistence.ProdutoRepository;
 import com.alimec.joaquim.alimecproject.ws.ServerServices;

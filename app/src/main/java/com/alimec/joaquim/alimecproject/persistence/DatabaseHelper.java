@@ -5,9 +5,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.alimec.joaquim.alimecproject.venda.Produto;
-import com.alimec.joaquim.alimecproject.venda.Venda;
-import com.alimec.joaquim.alimecproject.venda.Item;
+import com.alimec.joaquim.alimecproject.entidades.Produto;
+import com.alimec.joaquim.alimecproject.entidades.Venda;
+import com.alimec.joaquim.alimecproject.entidades.Item;
 
 /**
  * Created by KithLenovo on 23/01/2015.

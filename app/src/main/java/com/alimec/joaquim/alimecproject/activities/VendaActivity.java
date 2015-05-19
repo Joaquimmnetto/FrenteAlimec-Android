@@ -15,8 +15,8 @@ import com.alimec.joaquim.alimecproject.controle.VendaController;
 import com.alimec.joaquim.alimecproject.view.ProdutoAdapter;
 import com.alimec.joaquim.alimecproject.view.ProdutoDialogFragment;
 import com.alimec.joaquim.alimecproject.R;
-import com.alimec.joaquim.alimecproject.venda.Venda;
-import com.alimec.joaquim.alimecproject.venda.Item;
+import com.alimec.joaquim.alimecproject.entidades.Venda;
+import com.alimec.joaquim.alimecproject.entidades.Item;
 
 import org.json.JSONException;
 

@@ -1,9 +1,9 @@
 package com.alimec.joaquim.alimecproject.ws;
 
 import com.alimec.joaquim.alimecproject.persistence.ProdutoRepository;
-import com.alimec.joaquim.alimecproject.venda.JSONable;
-import com.alimec.joaquim.alimecproject.venda.Produto;
-import com.alimec.joaquim.alimecproject.venda.Venda;
+import com.alimec.joaquim.alimecproject.entidades.JSONable;
+import com.alimec.joaquim.alimecproject.entidades.Produto;
+import com.alimec.joaquim.alimecproject.entidades.Venda;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -76,7 +76,7 @@ public class ServerServices {
     }
 
 
-    public static boolean isServerReachable() {
+    public static boolean isServerVisivel() {
         JSONObject comando = null;
         try {
             comando = makeComando("serverStatus");

@@ -17,8 +17,8 @@ import android.widget.Toast;
 import com.alimec.joaquim.alimecproject.R;
 import com.alimec.joaquim.alimecproject.activities.VendaActivity;
 import com.alimec.joaquim.alimecproject.persistence.ProdutoRepository;
-import com.alimec.joaquim.alimecproject.venda.Produto;
-import com.alimec.joaquim.alimecproject.venda.Item;
+import com.alimec.joaquim.alimecproject.entidades.Produto;
+import com.alimec.joaquim.alimecproject.entidades.Item;
 
 
 /**
@@ -36,6 +36,7 @@ public class ProdutoDialogFragment extends DialogFragment {
     private Spinner modoPgto;
     private EditText precoTotal;
     private DialogInterface.OnClickListener positiveAction = new DialogInterface.OnClickListener() {
+
         @Override
         public void onClick(DialogInterface dialog, int which) {
             try {

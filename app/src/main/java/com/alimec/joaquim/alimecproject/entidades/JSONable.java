@@ -1,4 +1,4 @@
-package com.alimec.joaquim.alimecproject.venda;
+package com.alimec.joaquim.alimecproject.entidades;
 
 import org.json.JSONObject;
 

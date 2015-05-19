@@ -7,10 +7,8 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.alimec.joaquim.alimecproject.R;
-import com.alimec.joaquim.alimecproject.venda.Item;
-import com.alimec.joaquim.alimecproject.venda.Venda;
-
-import java.util.List;
+import com.alimec.joaquim.alimecproject.entidades.Item;
+import com.alimec.joaquim.alimecproject.entidades.Venda;
 
 /**
  * Created by KithLenovo on 23/01/2015.
