@@ -2,6 +2,7 @@ package com.alimec.joaquim.alimecproject.activities;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.alimec.joaquim.alimecproject.controle.VendaController;
+import com.alimec.joaquim.alimecproject.controle.VendaResult;
 import com.alimec.joaquim.alimecproject.view.ProdutoAdapter;
 import com.alimec.joaquim.alimecproject.view.ProdutoDialogFragment;
 import com.alimec.joaquim.alimecproject.R;
@@ -50,7 +52,7 @@ public class VendaActivity extends ActionBarActivity {
         SharedPreferences pref = getPreferences(MODE_PRIVATE);
 
         preencherVenda(venda);
-        pref.edit().putString(VENDA_SHARED_PREF,venda.toJSON().toString());
+        pref.edit().putString(VENDA_SHARED_PREF, venda.toJSON().toString());
         pref.edit().apply();
 
 
@@ -64,7 +66,7 @@ public class VendaActivity extends ActionBarActivity {
         SharedPreferences pref = getPreferences(MODE_PRIVATE);
 
         String jsonStr = pref.getString(VENDA_SHARED_PREF, null);
-        if(jsonStr != null){
+        if (jsonStr != null) {
             venda = Venda.fromJSON(jsonStr);
         }
 
@@ -92,7 +94,6 @@ public class VendaActivity extends ActionBarActivity {
         produtoList.setAdapter(adapter);
 
 
-
     }
 
     public void addVendaProduto(Item prod) {
@@ -104,7 +105,6 @@ public class VendaActivity extends ActionBarActivity {
         //meu amor, essa a ultima oracao, pra salvar seu coracao, coracao nao e tao simples quanto pensa, nele cabe o que nao cabe na dispensa
         //cabe o meu amor, cabe 3 vidas inteiras, cabe uma penteadeira, cabe nos dois... e cabe ate o[...]
     }
-
 
 
     public void removerVendaProduto(Item produto) {
@@ -122,11 +122,14 @@ public class VendaActivity extends ActionBarActivity {
                 .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                    if (venda.getProdutos().size() == 0) {
-                        Toast.makeText(getApplicationContext(),"Essa venda não tem produtos!",Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    enviarVenda();
+
+                        VendaResult result = controler.enviarVenda(venda);
+                        Toast.makeText(getApplicationContext(), result.getMessage(), Toast.LENGTH_LONG).show();
+                        if(result.isSuccess()){
+                            restartActivity();
+                        }
+
+
 
                     }
                 }).setNegativeButton("Não", new DialogInterface.OnClickListener() {
@@ -136,21 +139,9 @@ public class VendaActivity extends ActionBarActivity {
                     }
                 }).create();
 
-        confirmDialog.setMessage("Você deseja realizar essa venda?\n"+venda.toString());
+        confirmDialog.setMessage("Você deseja realizar essa venda?\n" + venda.toString());
 
         confirmDialog.show();
-    }
-
-    private void enviarVenda(){
-
-        try {
-            controler.enviarVenda(preencherVenda(venda));
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
     }
 
     public void onClickAddProduto(View view) {
@@ -171,14 +162,14 @@ public class VendaActivity extends ActionBarActivity {
 
     private void atualizarTotal() {
         double total = 0;
-        for(Item item:venda.getProdutos()){
-            total+=item.getPrecoTotal();
+        for (Item item : venda.getProdutos()) {
+            total += item.getPrecoTotal();
         }
 
-        ((TextView)findViewById(R.id.venda_total)).setText(String.format("%.2f",total));
+        ((TextView) findViewById(R.id.venda_total)).setText(String.format("%.2f", total));
     }
 
-    private Venda preencherVenda(Venda venda){
+    private Venda preencherVenda(Venda venda) {
         venda.setData(new Date());
         venda.setNomeCliente(((TextView) findViewById(R.id.venda_nomeCliente)).getText().toString());
         venda.setCpfCnpj(((TextView) findViewById(R.id.venda_cpfcnpj)).getText().toString());
@@ -186,4 +177,8 @@ public class VendaActivity extends ActionBarActivity {
         return venda;
     }
 
+    private void restartActivity(){
+        startActivity(new Intent(this,this.getClass()));
+        finish();
+    }
 }

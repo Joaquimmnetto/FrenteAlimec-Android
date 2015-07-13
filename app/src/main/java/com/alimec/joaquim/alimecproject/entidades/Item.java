@@ -31,7 +31,7 @@ public class Item implements Serializable,JSONable{
     public static final String TABLE_NAME = Item.class.getSimpleName();
     public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + "(" +
             ID + " integer primary key autoincrement," +
-            COD_PRODUTO + " varchar," +
+            COD_PRODUTO + " varchar unique," +
             COD_VENDA+" varchar," +
             QUANTIDADE+" integer," +
             UNIDADE + " varchar," +
@@ -87,6 +87,7 @@ public class Item implements Serializable,JSONable{
         this.descontos = descontos;
         this.meioPgto = meioPgto;
         this.precoTotal = precoTotal;
+        this.comentario = comentario;
     }
 
 
@@ -161,7 +162,7 @@ public class Item implements Serializable,JSONable{
 
     @Override
     public String toString(){
-        return quantidade+" "+unidade+"x"+produto+" = "+precoTotal;
+        return quantidade+" "+unidade+" "+produto+" = "+precoTotal;
     }
 
 
@@ -169,14 +170,14 @@ public class Item implements Serializable,JSONable{
 
         try {
             JSONObject obj = new JSONObject();
-            obj.put(ServerServices.ItemJSONArgs.CODITEM.toString(),produto.getCodigo());
-            obj.put(ServerServices.ItemJSONArgs.DATA.toString(),String.valueOf(venda.getData().getTime()));
-            obj.put(ServerServices.ItemJSONArgs.QUANTIDADE.toString(),getQuantidade());
-            obj.put(ServerServices.ItemJSONArgs.UNIDADE.toString(),getUnidade());
-            obj.put(ServerServices.ItemJSONArgs.MEIO_PGTO.toString(),getMeioPgto());
-            obj.put(ServerServices.ItemJSONArgs.VALOR_TOTAL.toString(),getPrecoTotal());
-            obj.put(ServerServices.ItemJSONArgs.CLIENTE.toString(),getVenda().getNomeCliente());
-            obj.put(ServerServices.ItemJSONArgs.COMPLEMENTO.toString(),getComentario());
+            obj.put(ServerServices.ItemJSONArgs.CODITEM.toString(),     produto.getCodigo());
+            obj.put(ServerServices.ItemJSONArgs.DATA.toString(),        String.valueOf(venda.getData().getTime()));
+            obj.put(ServerServices.ItemJSONArgs.QUANTIDADE.toString(),  getQuantidade());
+            obj.put(ServerServices.ItemJSONArgs.UNIDADE.toString(),     getUnidade());
+            obj.put(ServerServices.ItemJSONArgs.MEIO_PGTO.toString(),   getMeioPgto());
+            obj.put(ServerServices.ItemJSONArgs.VALOR_TOTAL.toString(), getPrecoTotal());
+            obj.put(ServerServices.ItemJSONArgs.CLIENTE.toString(),     getVenda().getNomeCliente());
+            obj.put(ServerServices.ItemJSONArgs.COMPLEMENTO.toString(), getComentario());
             return obj;
 
         } catch (JSONException e) {

@@ -15,7 +15,7 @@ import com.alimec.joaquim.alimecproject.entidades.Item;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "ALIMEC_DB";
-    private static final int DB_VERSION = 6;
+    private static final int DB_VERSION = 7;
 
 
     private static DatabaseHelper instance;

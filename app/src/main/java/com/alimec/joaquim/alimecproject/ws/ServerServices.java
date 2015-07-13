@@ -19,7 +19,7 @@ public class ServerServices {
 
     public static final String SERVER_SUCCESS = "success";
 
-    public static final String SERVER_ADDRESS = "192.168.0.106";
+    public static final String SERVER_ADDRESS = "192.168.0.104";
     public static final int SERVER_PORT = 9009;
 
     public static synchronized Produto[] importarProdutos() throws IOException, JSONException {
@@ -100,14 +100,7 @@ public class ServerServices {
         return makeComando(nomeComando,(JSONArray)null);
     }
 
-
-
-    private static JSONObject makeComando(String nomeComando,JSONable args) throws JSONException {
-
-        return makeComando(nomeComando,new JSONable[]{args});
-    }
-
-    private static JSONObject makeComando(String nomeComando,JSONable[] args) throws JSONException {
+    private static JSONObject makeComando(String nomeComando,JSONable... args) throws JSONException {
         return makeComando(nomeComando,arrayToJSONArray(args));
     }
 

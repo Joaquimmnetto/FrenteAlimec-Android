@@ -24,7 +24,7 @@ public class VendaDAO {
         db = helper.getWritableDatabase();
     }
 
-    public void addVenda(Venda v) throws SQLException {
+    public boolean addVenda(Venda v){
         ItemDAO dao = new ItemDAO(DatabaseHelper.getInstance());
 
         for (Item item : v.getProdutos()) {
@@ -40,6 +40,7 @@ public class VendaDAO {
         long result = db.insert(Venda.Tabela.TABLE_NAME, null, values);
         db.endTransaction();
 
+        return result > 0?true:false;
 
     }
 

@@ -138,7 +138,7 @@ public class Venda implements JSONable{
             JSONArray items = new JSONArray();
 
             for(int i = 0; i < produtos.size(); i++){
-                items.put(i,produtos.get(i));
+                items.put(i,produtos.get(i).toJSON());
             }
 
             object.put(ServerServices.VendaJSONArgs.ITENS.toString(),items);
