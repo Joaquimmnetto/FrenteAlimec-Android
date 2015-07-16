@@ -1,5 +1,6 @@
 package com.alimec.joaquim.alimecproject.ws;
 
+import com.alimec.joaquim.alimecproject.entidades.ResultadoProcuraServidor;
 import com.alimec.joaquim.alimecproject.persistence.ProdutoRepository;
 import com.alimec.joaquim.alimecproject.entidades.JSONable;
 import com.alimec.joaquim.alimecproject.entidades.Produto;
@@ -10,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 
 /**
@@ -19,13 +21,49 @@ public class ServerServices {
 
     public static final String SERVER_SUCCESS = "success";
 
-    public static final String SERVER_ADDRESS = "192.168.0.104";
-    public static final int SERVER_PORT = 9009;
+    private static String serverAddress = "localhost";
+    private static int serverPort = 9009;
+
+    private static final String BROADCAST_ADDRESS = NetworkUtils.getEnderecoBroadcast().getHostAddress();
+    private static final int BROADCAST_PORT = 9008;
+
+    public static boolean configure(ResultadoProcuraServidor lookup){
+        if(lookup.isSucesso()){
+            serverAddress = lookup.getEndereco().getHostAddress();
+            serverPort = lookup.getPorta();
+
+            return isServerVisivel();
+        }
+        return false;
+
+
+    }
+
+    public static synchronized ResultadoProcuraServidor procurarServidor() throws IOException, JSONException {
+
+        JSONObject comando = makeComando("serverLookup");
+        JSONObject response = Transaction.newTransaction(BROADCAST_ADDRESS,BROADCAST_PORT).fazerComandoUDP(comando);
+
+        if(response.getBoolean(SERVER_SUCCESS)){
+            response = response.getJSONObject("lookup");
+            String endereco = response.getString("endereco");
+            int porta = response.getInt("porta");
+            String versao = response.getString("versao");
+
+            return ResultadoProcuraServidor.gerarSucesso(InetAddress.getByName(endereco),porta,versao);
+
+        }else{
+            return ResultadoProcuraServidor.gerarFalha(response.getString("message"));
+        }
+
+    }
+
+
 
     public static synchronized Produto[] importarProdutos() throws IOException, JSONException {
 
         JSONObject comando = makeComando("importarProdutos");
-        JSONObject response = Transaction.newTransaction(SERVER_ADDRESS, SERVER_PORT).fazerComando(comando);
+        JSONObject response = Transaction.newTransaction(serverAddress, serverPort).fazerComando(comando);
 
         ArrayList<Produto> result = new ArrayList<>();
 
@@ -52,7 +90,7 @@ public class ServerServices {
 
         JSONObject comando = makeComando("EnviarVenda", vendas);
 
-        Transaction transaction = Transaction.newTransaction(SERVER_ADDRESS, SERVER_PORT);
+        Transaction transaction = Transaction.newTransaction(serverAddress, serverPort);
         JSONObject response = transaction.fazerComando(comando);
 
         return response.getBoolean(SERVER_SUCCESS);
@@ -80,7 +118,7 @@ public class ServerServices {
         JSONObject comando = null;
         try {
             comando = makeComando("serverStatus");
-            Transaction transaction = Transaction.newTransaction(SERVER_ADDRESS, SERVER_PORT);
+            Transaction transaction = Transaction.newTransaction(serverAddress, serverPort);
 
             JSONObject response = transaction.fazerComando(comando);
 

@@ -3,6 +3,7 @@ package com.alimec.joaquim.alimecproject.controle;
 import android.content.Context;
 
 import com.alimec.joaquim.alimecproject.configs.ConfiguracaoPrivada;
+import com.alimec.joaquim.alimecproject.entidades.ResultadoProcuraServidor;
 import com.alimec.joaquim.alimecproject.persistence.DatabaseHelper;
 import com.alimec.joaquim.alimecproject.persistence.ProdutoRepository;
 import com.alimec.joaquim.alimecproject.entidades.Produto;
@@ -26,8 +27,20 @@ public class IntialLoadController {
         Locale.setDefault(Locale.ENGLISH);
     }
 
-    public boolean verificarConexao(){
-        return ServerServices.isServerVisivel();
+    public boolean verificarConexao() throws IOException{
+        try {
+            ResultadoProcuraServidor lookup = ServerServices.procurarServidor();
+            if(lookup.isSucesso()){
+                return ServerServices.configure(lookup);
+            }
+            else{
+                throw new IOException(lookup.getMensagem());
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public boolean atualizarProdutos() throws IOException{
