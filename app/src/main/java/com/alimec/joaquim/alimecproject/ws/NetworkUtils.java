@@ -23,7 +23,9 @@ public class NetworkUtils {
                 NetworkInterface intf = interfaces.nextElement();
                 if (!intf.isLoopback()) {
                     List<InterfaceAddress> intfaddrs = intf.getInterfaceAddresses();
-                    return intfaddrs.get(0).getBroadcast(); //return first IP address
+                    if(intfaddrs.size() > 0){
+                        return intfaddrs.get(0).getBroadcast(); //return first IP address
+                    }
                 }
             }
         } catch (SocketException e) {

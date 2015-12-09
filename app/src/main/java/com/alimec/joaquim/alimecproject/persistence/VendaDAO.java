@@ -1,13 +1,13 @@
 package com.alimec.joaquim.alimecproject.persistence;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
+import com.alimec.joaquim.alimecproject.modelo.Item;
+import com.alimec.joaquim.alimecproject.modelo.Venda;
+import com.alimec.joaquim.alimecproject.persistence.entidades.VendaDB;
+import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.PreparedQuery;
 
-import com.alimec.joaquim.alimecproject.entidades.Item;
-import com.alimec.joaquim.alimecproject.entidades.Venda;
-
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -18,62 +18,54 @@ import java.util.List;
  */
 public class VendaDAO {
 
-    private SQLiteDatabase db;
+    private Dao<VendaDB,Integer> dao;
 
-    public VendaDAO(DatabaseHelper helper) {
-        db = helper.getWritableDatabase();
-    }
-
-    public boolean addVenda(Venda v){
-        ItemDAO dao = new ItemDAO(DatabaseHelper.getInstance());
-
-        for (Item item : v.getProdutos()) {
-            item.setVenda(v);
-            dao.addItem(item);
+    public VendaDAO(OrmLiteSqliteOpenHelper helper) {
+        try {
+            dao = helper.getDao(VendaDB.class);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+    }
 
-        ContentValues values = new ContentValues();
-        values.put(Venda.Tabela.DATA.toString(), v.getData().getTime());
-        values.put(Venda.Tabela.NOME_CLIENTE.toString(), v.getNomeCliente());
-        values.put(Venda.Tabela.CPF_CNPJ.toString(), v.getCpfCnpj());
-        db.beginTransaction();
-        long result = db.insert(Venda.Tabela.TABLE_NAME, null, values);
-        db.endTransaction();
+    public boolean addVenda(Venda v) throws SQLException {
+        ItemDAO itemDAO = new ItemDAO(DatabaseHelper.getInstance());
 
-        return result > 0?true:false;
+        for (Item item : v.getItens()) {
+            item.setVenda(v);//TODO: isso eh regra, colocar no controler.
+            itemDAO.addItem(item);
+        }
+        Dao.CreateOrUpdateStatus result = dao.createOrUpdate(new VendaDB(v));
+
+        return result.isCreated() || result.isUpdated();
 
     }
 
-    public Venda[] getVendasAPartirDe(Date startingDate) {
+    public Venda[] getVendasAPartirDe(Date startingDate) throws SQLException {
 
-        ItemDAO dao = new ItemDAO(DatabaseHelper.getInstance());
+        ItemDAO itemDAO = new ItemDAO(DatabaseHelper.getInstance());
         List<Venda> vendas = new ArrayList<>();
 
-        String where = Venda.Tabela.DATA + " > " + startingDate.getTime();
-        String orderBy = Venda.Tabela.DATA + " ASC";
+        PreparedQuery<VendaDB> query = dao.queryBuilder().orderBy("data",true).where().gt("data",startingDate.getTime()).prepare();
+        List<VendaDB> result = dao.query(query);
 
-
-        Cursor c = db.query(true, Venda.Tabela.TABLE_NAME, null, where, null, null, null, orderBy, null);
-        if (!c.isAfterLast()) {
-            do {
-                Venda venda = parseVenda(c);
-                venda.getProdutos().addAll(Arrays.asList(dao.getItensFromVenda(venda)));
-                vendas.add(venda);
-
-            } while (c.moveToNext());
-
+        for(VendaDB vendaDB:result){
+            Venda venda = vendaDB.toModelo();
+            venda.getItens().addAll(Arrays.asList(itemDAO.getItensFromVenda(venda)));
+            vendas.add(venda);
         }
+
         return vendas.toArray(new Venda[vendas.size()]);
     }
 
 
-    private Venda parseVenda(Cursor c) {
-        long data = c.getLong(c.getColumnIndex(Venda.Tabela.DATA.toString()));
-        String nome = c.getString(c.getColumnIndex(Venda.Tabela.NOME_CLIENTE.toString()));
-        String cnpjCpf = c.getString(c.getColumnIndex(Venda.Tabela.CPF_CNPJ.toString()));
-
-        return new Venda(new Date(data), nome, cnpjCpf);
-    }
+//    private Venda parseVenda(Cursor c) {
+//        long data = c.getLong(c.getColumnIndex(Venda.Tabela.DATA.toString()));
+//        String nome = c.getString(c.getColumnIndex(Venda.Tabela.NOME_CLIENTE.toString()));
+//        String cnpjCpf = c.getString(c.getColumnIndex(Venda.Tabela.CPF_CNPJ.toString()));
+//
+//        return new Venda(new Date(data), nome, cnpjCpf);
+//    }
 
 
 }

@@ -12,6 +12,7 @@ import com.alimec.joaquim.alimecproject.ws.ServerServices;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 /**
  * Created by joaquim on 23/04/15.
@@ -29,10 +30,12 @@ public class NetworkStateReceiver extends BroadcastReceiver{
 
         if(wifiInfo.isAvailable() && ServerServices.isServerVisivel()){
             try {
-                new VendaController().enviarVendasPendentes();
+                VendaController.getInstance().enviarVendasPendentes();
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
         }

@@ -3,15 +3,16 @@ package com.alimec.joaquim.alimecproject.controle;
 import android.content.Context;
 
 import com.alimec.joaquim.alimecproject.configs.ConfiguracaoPrivada;
-import com.alimec.joaquim.alimecproject.entidades.ResultadoProcuraServidor;
+import com.alimec.joaquim.alimecproject.modelo.ResultadoProcuraServidor;
 import com.alimec.joaquim.alimecproject.persistence.DatabaseHelper;
 import com.alimec.joaquim.alimecproject.persistence.ProdutoRepository;
-import com.alimec.joaquim.alimecproject.entidades.Produto;
+import com.alimec.joaquim.alimecproject.modelo.ProdutoTO;
 import com.alimec.joaquim.alimecproject.ws.ServerServices;
 
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Locale;
 
 /**
@@ -45,9 +46,9 @@ public class IntialLoadController {
 
     public boolean atualizarProdutos() throws IOException{
         try {
-            if (ServerServices.checkUpdates()) {
-                Produto[] produtos = null;
-                produtos = ServerServices.importarProdutos();
+            if (ServerServices.haveUpdates()) {
+                ProdutoTO[] produtos = ServerServices.importarProdutos();
+
                 ProdutoRepository.getInstance().limparProdutos();
                 ProdutoRepository.getInstance().addProdutos(produtos);
                 return true;
@@ -61,9 +62,11 @@ public class IntialLoadController {
 
     public boolean enviarVendasOffline() throws IOException{
         try {
-            new VendaController().enviarVendasPendentes();
+            VendaController.getInstance().enviarVendasPendentes();
             return true;
         } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 

@@ -45,7 +45,7 @@ public class Transaction {
 
             @Override
             protected Object doInBackground(String... params) {
-                Socket comm = null;
+                Socket comm;
                 String message = params[0];
                 try {
                     comm = new Socket();
@@ -60,7 +60,7 @@ public class Transaction {
 
 
                     StringWriter response = new StringWriter();
-                    int readen = -1;
+                    int readen;
                     while (true) {
                         readen = in.read();
 
@@ -80,7 +80,7 @@ public class Transaction {
         };
         commTask.execute(comando.toString());
 
-        Object response = null;
+        Object response;
         try {
             response = commTask.get();
 
@@ -130,7 +130,7 @@ public class Transaction {
                             }
                         }
                     });
-                    return new JSONObject(new String(sendPack.getData()));
+                    return new JSONObject(new String(recvPack.getData()));
                 } catch (Exception e) {
                     e.printStackTrace();
                     exceptionOcourred = true;
@@ -141,7 +141,7 @@ public class Transaction {
 
         udpCommTask.execute(comando.toString());
 
-        Object response = null;
+        Object response;
         try {
             response = udpCommTask.get();
 
@@ -152,13 +152,11 @@ public class Transaction {
             if (exceptionOcourred) {
                 throw (IOException) response;
             }
-            return new JSONObject((String) response);
+            return (JSONObject) response;
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
             e.printStackTrace();
-        } catch (JSONException e) {
-            throw new IOException(e);
         }
 
         return null;

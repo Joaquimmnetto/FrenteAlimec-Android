@@ -1,80 +1,43 @@
 package com.alimec.joaquim.alimecproject.persistence;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
 
-import com.alimec.joaquim.alimecproject.entidades.Item;
-import com.alimec.joaquim.alimecproject.entidades.Produto;
-import com.alimec.joaquim.alimecproject.entidades.Venda;
+import com.alimec.joaquim.alimecproject.modelo.Item;
+import com.alimec.joaquim.alimecproject.modelo.Venda;
+import com.alimec.joaquim.alimecproject.persistence.entidades.ItemDB;
+import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
+import com.j256.ormlite.dao.Dao;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
-class ItemDAO {
+public class ItemDAO {
 
-    private SQLiteDatabase db;
-
+    private Dao<ItemDB,Integer> itemDAO;
 
     public ItemDAO(DatabaseHelper helper){
-        db = helper.getWritableDatabase();
-
-    }
-
-    public void addItem(Item p){
-        ContentValues values = new ContentValues();
-        values.put(Item.Tabela.COD_PRODUTO.toString(),p.getProduto().getCodigo());
-        values.put(Item.Tabela.COD_VENDA.toString(),p.getVenda().getData().getTime()+"");
-        values.put(Item.Tabela.QUANTIDADE.toString(),p.getQuantidade());
-        values.put(Item.Tabela.UNIDADE.toString(),p.getUnidade());
-        values.put(Item.Tabela.PRECO_UNITARIO.toString(),p.getPrecoUnitario());
-        values.put(Item.Tabela.MEIO_PGTO.toString(),p.getMeioPgto());
-        values.put(Item.Tabela.PRECO_TOTAL.toString(),p.getPrecoTotal());
-        values.put(Item.Tabela.COMENTARIO.toString(),p.getComentario());
-
-        db.beginTransaction();
-        try{
-            long result = db.insert(Item.Tabela.TABLE_NAME,null,values);
-
-        }catch(SQLException e){
+        try {
+            this.itemDAO = helper.getDao(ItemDB.class);
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-        db.endTransaction();
     }
 
-    public void addItens(List<Item> produtos) {
-        for(Item p:produtos){
-            addItem(p);
+    public void addItem(Item p) throws SQLException {
+            ItemDB item = new ItemDB(p);
+            itemDAO.create(item);
+    }
+
+    public Item[] getItensFromVenda(Venda venda) throws SQLException {
+        List<Item> result = new ArrayList<>();
+        List<ItemDB> queryResult = itemDAO.queryForEq("venda_id",venda.getData().getTime());
+
+        for(ItemDB item:queryResult){
+            result.add(item.toModelo(venda));
         }
 
+        return result.toArray(new Item[result.size()]);
 
     }
-
-    public Item[] getItensFromVenda(Venda venda){
-        List<Item> produtos = new ArrayList<>();
-        String where = Item.Tabela.COD_VENDA+"="+venda.getData().getTime();
-
-        Cursor c = db.query(Item.Tabela.TABLE_NAME,null,where,null,null,null,null);
-        while(c.moveToNext()){
-            produtos.add(parseItem(c, venda));
-        }
-        return produtos.toArray(new Item[produtos.size()]);
-    }
-
-
-    private Item parseItem(Cursor c, Venda venda){
-        Produto prod = ProdutoRepository.getInstance().getProduto(c.getString(c.getColumnIndex(Item.Tabela.COD_PRODUTO.toString())));
-        double quantidade = c.getDouble(c.getColumnIndex(Item.Tabela.QUANTIDADE.toString()));
-        String unidade = c.getString(c.getColumnIndex(Item.Tabela.UNIDADE.toString()));
-        double precoUnitario = c.getDouble(c.getColumnIndex(Item.Tabela.PRECO_UNITARIO.toString()));
-        double desconto = c.getDouble(c.getColumnIndex(Item.Tabela.DESCONTOS.toString()));
-        String meioPgto = c.getString(c.getColumnIndex(Item.Tabela.MEIO_PGTO.toString()));
-        double precoTotal = c.getDouble(c.getColumnIndex(Item.Tabela.PRECO_TOTAL.toString()));
-        String comentario = c.getString(c.getColumnIndex(Item.Tabela.COMENTARIO.toString()));
-
-        return new Item(prod,venda,quantidade,unidade,precoUnitario,desconto,meioPgto,precoTotal,comentario);
-    }
-
-
 }

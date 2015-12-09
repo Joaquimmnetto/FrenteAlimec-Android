@@ -2,20 +2,23 @@ package com.alimec.joaquim.alimecproject.persistence;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
-import com.alimec.joaquim.alimecproject.entidades.Produto;
-import com.alimec.joaquim.alimecproject.entidades.Venda;
-import com.alimec.joaquim.alimecproject.entidades.Item;
+import com.alimec.joaquim.alimecproject.persistence.entidades.ItemDB;
+import com.alimec.joaquim.alimecproject.persistence.entidades.ProdutoDB;
+import com.alimec.joaquim.alimecproject.persistence.entidades.VendaDB;
+import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.TableUtils;
+
+import java.sql.SQLException;
 
 /**
  * Created by KithLenovo on 23/01/2015.
  */
-public class DatabaseHelper extends SQLiteOpenHelper {
+public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
     private static final String DB_NAME = "ALIMEC_DB";
-    private static final int DB_VERSION = 7;
+    private static final int DB_VERSION = 12;
 
 
     private static DatabaseHelper instance;
@@ -33,22 +36,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
-        db.execSQL(Produto.Tabela.CREATE_TABLE);
-        Log.d("DB",Produto.Tabela.CREATE_TABLE);
-        db.execSQL(Venda.Tabela.CREATE_TABLE);
-        Log.d("DB",Venda.Tabela.CREATE_TABLE);
-        db.execSQL(Item.Tabela.CREATE_TABLE);
-        Log.d("DB", Item.Tabela.CREATE_TABLE);
+    public void onCreate(SQLiteDatabase sqLiteDatabase, ConnectionSource connectionSource) {
+        try {
+            TableUtils.createTable(connectionSource, ProdutoDB.class);
+            TableUtils.createTable(connectionSource, VendaDB.class);
+            TableUtils.createTable(connectionSource, ItemDB.class);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL(Produto.Tabela.DESTORY_TABLE);
-        db.execSQL(Venda.Tabela.DESTORY_TABLE);
-        db.execSQL(Item.Tabela.DESTORY_TABLE);
-        onCreate(db);
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, ConnectionSource connectionSource, int i, int i2) {
+        try {
+            TableUtils.dropTable(connectionSource, ProdutoDB.class,true);
+            TableUtils.dropTable(connectionSource, ItemDB.class,true);
+            TableUtils.dropTable(connectionSource, VendaDB.class,true);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        onCreate(sqLiteDatabase,connectionSource);
     }
-
 
 }

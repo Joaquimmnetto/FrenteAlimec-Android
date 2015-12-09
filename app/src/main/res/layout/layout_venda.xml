@@ -30,7 +30,8 @@
         android:id="@+id/venda_listItens"
         android:layout_above="@+id/venda_confirmar"
         android:layout_below="@+id/venda_cpfcnpj"
-        android:layout_marginTop="15dp" />
+        android:layout_marginTop="15dp"
+         />
 
     <Button
         android:layout_width="wrap_content"

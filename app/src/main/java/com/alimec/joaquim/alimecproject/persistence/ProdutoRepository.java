@@ -1,134 +1,340 @@
 package com.alimec.joaquim.alimecproject.persistence;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.util.Log;
 
-import com.alimec.joaquim.alimecproject.entidades.Produto;
+import com.alimec.joaquim.alimecproject.modelo.Categoria;
+import com.alimec.joaquim.alimecproject.modelo.Produto;
+import com.alimec.joaquim.alimecproject.modelo.ProdutoComposite;
+import com.alimec.joaquim.alimecproject.modelo.ProdutoTO;
+import com.alimec.joaquim.alimecproject.persistence.entidades.ProdutoDB;
+import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.table.TableUtils;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 public class ProdutoRepository {
 
-    private Produto[] produtos;
-    private SQLiteDatabase db;
+    public static final String RAIZ_COD = "raiz";
     private static ProdutoRepository instance;
+    private Map<String, ProdutoComposite> produtoCompositeMap;
+    private Produto[] produtos;
+    private Dao<ProdutoDB, String> dao;
+
+    private ProdutoRepository(OrmLiteSqliteOpenHelper helper) {
+        try {
+            dao = helper.getDao(ProdutoDB.class);
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static ProdutoRepository getInstance() {
-        if(instance == null){
+        if (instance == null) {
             instance = new ProdutoRepository(DatabaseHelper.getInstance());
         }
         return instance;
     }
 
-    private ProdutoRepository(DatabaseHelper helper){
-        db = helper.getWritableDatabase();
-    }
-
-
-    public void addProdutos(Produto[] produtos){
-        db.beginTransaction();
+    public void addProdutos(ProdutoTO[] produtosTO) {
         try {
-            ContentValues values = new ContentValues();
-            for (Produto produto : produtos) {
-                values.put(Produto.Tabela.CODIGO.toString(), produto.getCodigo());
-                values.put(Produto.Tabela.DESCRICAO.toString(), produto.getDescricao());
-
-                long insertResult = db.insertOrThrow(Produto.Tabela.TABLE_NAME, null, values);
-            }
-            db.setTransactionSuccessful();
-        }catch(SQLException e){
+            Map<String, ProdutoTO> produtoTOMap = criarProdutoTOMap(produtosTO);
+            Map<String, ProdutoDB> arvoreProdutoDB = criarArvoreProdutoDB(produtoTOMap);
+            salvarArvoreProdutoDB(arvoreProdutoDB);
+            produtoCompositeMap = criarProdutosFromDB();
+            Log.d("Produtos:", produtoCompositeMap.toString());
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-        db.endTransaction();
 
-        this.produtos = getProdutosFromDatabase();
-        Log.d("PRODUTOS",produtos.length+"");
+        Log.d("PRODUTOS", this.produtoCompositeMap.size() + "");
     }
 
-    public Produto[] getProdutos(){
-        if(produtos == null){
-            produtos = getProdutosFromDatabase();
+
+    public Produto[] getProdutos() {
+        if (produtoCompositeMap == null) {
+            produtoCompositeMap = criarProdutosFromDB();
+        }
+        if (produtos == null) {
+            List<Produto> folhas = new ArrayList<>();
+            for (ProdutoComposite produto : produtoCompositeMap.values()) {
+                if (produto instanceof Produto) {
+                    folhas.add((Produto) produto);
+                }
+            }
+
+            produtos = folhas.toArray(new Produto[folhas.size()]);
+
             Arrays.sort(produtos, new Comparator<Produto>() {
                 @Override
                 public int compare(Produto lhs, Produto rhs) {
-                    if(lhs == null && rhs == null){
+                    if (lhs == null && rhs == null) {
                         return 0;
                     }
-                    if(lhs == null){
+                    if (lhs == null) {
                         return -1;
                     }
-                    if(rhs == null){
+                    if (rhs == null) {
                         return 1;
                     }
                     return lhs.getCodigo().compareTo(rhs.getCodigo());
                 }
             });
         }
+        Log.d("Produtos",produtos.length+"");
         return produtos;
 
     }
 
-    public String[] getListaCodigos(){
-        List<String> codigos = new ArrayList<String>();
-        for(Produto p:getProdutos()){
-           codigos.add(p.getCodigo());
-        }
-        Collections.sort(codigos);
-
-        return codigos.toArray(new String[codigos.size()]);
+    public String[] getListaCodigos() {
+        return produtoCompositeMap.keySet().toArray(new String[produtoCompositeMap.keySet().size()]);
     }
 
-    public Produto getProduto(String codigo){
-        int index = Arrays.binarySearch(produtos,codigo,new Comparator<Object>() {
-            @Override
-            public int compare(Object lhs, Object rhs) {
-                if(lhs != null && lhs instanceof Produto){
-                    if(rhs != null && rhs instanceof String){
-                        return ((Produto) lhs).getCodigo().compareTo((String)rhs);
-                    }
-                }
-                return 0;
-            }
-        });
-        if(index >= 0) {
-            return produtos[index];
+    public ProdutoComposite getProdutoComposite(String codigo) {
+        if(produtoCompositeMap == null){
+            getProdutos();
         }
-        else{
+        if (produtoCompositeMap.containsKey(codigo)) {
+            return produtoCompositeMap.get(codigo);
+        } else {
             return null;
         }
     }
 
-    public void limparProdutos() {
-        db.beginTransaction();
-        db.delete(Produto.Tabela.TABLE_NAME,null,null);
-        db.endTransaction();
-    }
+    public Produto getProduto(String prodCode) {
 
-    private Produto[] getProdutosFromDatabase() throws SQLiteException{
-        List<Produto> produtos = new ArrayList<Produto>();
-        Cursor c = db.query(Produto.Tabela.TABLE_NAME,null,null,null,null,null,null);
-        while (c.moveToNext()){
-            produtos.add(parseProduto(c));
+        ProdutoComposite prod = getProdutoComposite(prodCode);
+
+        if (prod instanceof Produto) {
+            return (Produto) prod;
         }
 
-        return produtos.toArray(new Produto[produtos.size()]);
+        return null;
+
+    }
+
+    public void limparProdutos() {
+        try {
+            TableUtils.clearTable(DatabaseHelper.getInstance().getConnectionSource(), ProdutoDB.class);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Map<String, ProdutoDB> getProdutosFromDatabase() throws SQLException {
+        List<ProdutoDB> result = dao.queryForAll();
+        Map<String, ProdutoDB> mapResult = new HashMap<>();
+
+        for (ProdutoDB produto : result) {
+            mapResult.put(produto.codigo, produto);
+        }
+
+
+        return mapResult;
+    }
+
+    private Map<String, ProdutoTO> criarProdutoTOMap(ProdutoTO[] produtos) {
+        Map<String, ProdutoTO> produtosMap = new HashMap<>();
+        for (ProdutoTO produto : produtos) {
+            produtosMap.put(produto.codigo, produto);
+        }
+
+        return produtosMap;
+    }
+
+//    private Map<String, ProdutoDB> criarArvoreProdutoDB(Map<String, ProdutoComposite> produtoCompositeMap) {
+//        Map<String, ProdutoDB> produtosDB = new HashMap<>();
+//
+//        for (ProdutoComposite produto : produtoCompositeMap.values()) {
+//            ProdutoDB db = null;
+//
+//            if (produtosDB.containsKey(produto.getCodigo())) {
+//                db = produtosDB.get(produto.getCodigo());
+//            } else {
+//                db = ProdutoDB.createProdutoDB(produto);
+//            }
+//
+//            ProdutoComposite prodPai = ((Categoria) produto).getParente();
+//
+//            if (prodPai != null) {
+//                ProdutoDB pai = null;
+//                String codigoPai = prodPai.getCodigo();
+//                if (produtosDB.containsKey(codigoPai)) {
+//                    pai = produtosDB.get(codigoPai);
+//                } else {
+//                    pai = ProdutoDB.createProdutoDB(produto);
+//                }
+//                db.parente = pai;
+//            } else {
+//                db.parente = null;
+//            }
+//        }
+//
+//        return produtosDB;
+//    }
+
+    private Map<String, ProdutoDB> criarArvoreProdutoDB(Map<String, ProdutoTO> produtos) {
+        Map<String, ProdutoDB> produtosDB = new HashMap<>();
+
+        for (ProdutoTO produto : produtos.values()) {
+            ProdutoDB produtoDB = null;
+
+            if (produtosDB.containsKey(produto.codigo)) {
+                produtoDB = produtosDB.get(produto.codigo);
+            } else {
+                produtoDB = new ProdutoDB(produto);
+            }
+
+            String codigoPai = produto.parenteCod;
+
+            if (codigoPai != null) {
+                ProdutoDB pai = produtosDB.get(codigoPai);
+
+                if (!produtosDB.containsKey(codigoPai)) {
+                    if (produtos.get(codigoPai) != null) {
+                        pai = new ProdutoDB(produtos.get(codigoPai));
+                        produtosDB.put(pai.codigo, pai);
+
+                    } else {
+                        produtoDB.parente = null;
+                    }
+                }
+                produtoDB.parente = pai;
+            } else {
+                produtoDB.parente = null;
+            }
+
+            produtosDB.put(produtoDB.codigo, produtoDB);
+        }
+
+        return produtosDB;
+    }
+
+    private Map<String, ProdutoDB> criarESalvarArvoreProdutosDB(ProdutoTO[] produtos) throws SQLException {
+        Map<String, ProdutoDB> produtosDB = criarArvoreProdutoDB(criarProdutoTOMap(produtos));
+        salvarArvoreProdutoDB(produtosDB);
+
+        return produtosDB;
+    }
+
+    //    salvarArvoreProdutoDB(criarArvoreProdutoDB(criarProdutoMap(produtosArray)));
+    private void salvarArvoreProdutoDB(final Map<String, ProdutoDB> produtosDB) throws SQLException {
+        try {
+            dao.callBatchTasks(new Callable<Object>() {
+                @Override
+                public Object call() throws Exception {
+                    for (ProdutoDB produto : produtosDB.values()) {
+                        if (!produto.categoria) {
+                            salvarCategoria(produto.parente);
+                            dao.createOrUpdate(produto);
+                            Log.d("Produto", "Salvando Produto " + produto);
+                        }
+                    }
+                    return null;
+                }
+            });
+        } catch (Exception e) {
+            throw new SQLException(e);
+        }
+    }
+
+    private void salvarCategoria(ProdutoDB categoria) throws SQLException {
+        if (categoria != null && !dao.idExists(categoria.codigo)) {
+            salvarCategoria(categoria.parente);
+            dao.createOrUpdate(categoria);
+            Log.d("Produto", "Salvando Categoria " + categoria);
+        }
+    }
+
+    private Map<String, ProdutoComposite> criarProdutosFromDB() {
+        try {
+            return criarProdutosFromDB(getProdutosFromDatabase());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new HashMap<>();
+    }
+
+    private Map<String, ProdutoComposite> criarProdutosFromDB(Map<String, ProdutoDB> produtosDB) {
+        Map<String, ProdutoComposite> produtos = new HashMap<>();
+        ProdutoDB raizDB = produtosDB.get(RAIZ_COD);
+        if (raizDB != null) {
+            Categoria raiz = (Categoria) criarArvoreTopDown(raizDB, produtosDB);
+            raiz.setParente(null);
+            preencherBottomUp(raiz);
+            produtos = criarMapaFromArvore(raiz);
+
+        }
+        return produtos;
+    }
+
+    private Map<String, ProdutoComposite> criarMapaFromArvore(ProdutoComposite raiz) {
+        Map<String, ProdutoComposite> produtos = new HashMap<>();
+        if (raiz instanceof Categoria) {
+            for (ProdutoComposite filho : ((Categoria) raiz).getFilhos()) {
+                produtos.putAll(criarMapaFromArvore(filho));
+            }
+        }
+        produtos.put(raiz.getCodigo(), raiz);
+
+        return produtos;
+    }
+
+    private void preencherBottomUp(Categoria raiz) {
+        for (ProdutoComposite filho : raiz.getFilhos()) {
+            filho.setParente(raiz);
+            if (filho instanceof Categoria) {
+                preencherBottomUp((Categoria) filho);
+            }
+        }
+    }
+
+    private ProdutoComposite criarArvoreTopDown(ProdutoDB pai, Map<String, ProdutoDB> produtosDB) {
+
+        if (pai.categoria) {
+            List<ProdutoDB> filhosDB = new ArrayList<>();
+            for (ProdutoDB filhoCandidato : produtosDB.values()) {
+                if (filhoCandidato.parente != null && filhoCandidato.parente.equals(pai)) {
+                    filhosDB.add(filhoCandidato);
+                }
+            }
+
+            List<ProdutoComposite> filhos = new ArrayList<>();
+            for (ProdutoDB filho : filhosDB) {
+                filhos.add(criarArvoreTopDown(filho, produtosDB));
+            }
+
+            return new Categoria(pai.codigo, pai.descricao, filhos.toArray(new ProdutoComposite[filhos.size()]));
+        }
+
+        return new Produto(pai.codigo, pai.descricao);
+
+    }
+
+    public ProdutoDB getProdutoDB(ProdutoComposite produto) {
+        try {
+            return dao.queryForId(produto.getCodigo());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 
-    private Produto parseProduto(Cursor c){
-        String codigo = c.getString(0);
-        String descricao = c.getString(1);
-
-        return new Produto(codigo,descricao);
-    }
+//
+//    private Produto parseProduto(Cursor c){
+//        String codigo = c.getString(0);
+//        String descricao = c.getString(1);
+//
+//        return new Produto(codigo,descricao);
+//    }
 
 
 }

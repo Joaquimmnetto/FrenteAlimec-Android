@@ -1,10 +1,13 @@
 package com.alimec.joaquim.alimecproject.ws;
 
-import com.alimec.joaquim.alimecproject.entidades.ResultadoProcuraServidor;
+import android.util.Log;
+
+import com.alimec.joaquim.alimecproject.modelo.ResultadoProcuraServidor;
 import com.alimec.joaquim.alimecproject.persistence.ProdutoRepository;
-import com.alimec.joaquim.alimecproject.entidades.JSONable;
-import com.alimec.joaquim.alimecproject.entidades.Produto;
-import com.alimec.joaquim.alimecproject.entidades.Venda;
+import com.alimec.joaquim.alimecproject.modelo.JSONable;
+import com.alimec.joaquim.alimecproject.modelo.Produto;
+import com.alimec.joaquim.alimecproject.modelo.Venda;
+import com.alimec.joaquim.alimecproject.modelo.ProdutoTO;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,7 +27,17 @@ public class ServerServices {
     private static String serverAddress = "localhost";
     private static int serverPort = 9009;
 
-    private static final String BROADCAST_ADDRESS = NetworkUtils.getEnderecoBroadcast().getHostAddress();
+    private static final String BROADCAST_ADDRESS;
+    static{
+        InetAddress broadcast = NetworkUtils.getEnderecoBroadcast();
+        if(broadcast != null){
+            BROADCAST_ADDRESS = broadcast.getHostAddress();
+        }
+        else{
+            BROADCAST_ADDRESS = "192.168.1.255";
+        }
+    }
+
     private static final int BROADCAST_PORT = 9008;
 
     public static boolean configure(ResultadoProcuraServidor lookup){
@@ -60,22 +73,23 @@ public class ServerServices {
 
 
 
-    public static synchronized Produto[] importarProdutos() throws IOException, JSONException {
+    public static synchronized ProdutoTO[] importarProdutos() throws IOException, JSONException {
 
         JSONObject comando = makeComando("importarProdutos");
         JSONObject response = Transaction.newTransaction(serverAddress, serverPort).fazerComando(comando);
 
-        ArrayList<Produto> result = new ArrayList<>();
+        ArrayList<ProdutoTO> result = new ArrayList<>();
 
 
         if(response.getBoolean(SERVER_SUCCESS)){
             JSONArray produtos = response.getJSONArray("produtos");
             for(int i = 0 ; i < produtos.length() ; i++){
                 JSONObject produto = produtos.getJSONObject(i);
-                result.add(new Produto(produto));
+                result.add(new ProdutoTO(produto));
 
             }
-            return result.toArray(new Produto[result.size()]);
+            Log.d("PRODUTOS",result.toString());
+            return result.toArray(new ProdutoTO[result.size()]);
         }
         else{
             return null;
@@ -96,11 +110,11 @@ public class ServerServices {
         return response.getBoolean(SERVER_SUCCESS);
     }
 
-    public static synchronized boolean checkUpdates() throws IOException, JSONException {
-        Produto[] serverProds = importarProdutos();
+    public static synchronized boolean haveUpdates() throws IOException, JSONException {
+        ProdutoTO[] serverProds = importarProdutos();
         Produto[] localProds = ProdutoRepository.getInstance().getProdutos();
 
-        if(serverProds.length!=localProds.length){
+        if(serverProds.length != localProds.length){
             return true;
         }
         for(int i = 0;i<serverProds.length;i++){
@@ -108,16 +122,14 @@ public class ServerServices {
                 return true;
             }
         }
-
-
         return false;
     }
 
 
     public static boolean isServerVisivel() {
-        JSONObject comando = null;
+
         try {
-            comando = makeComando("serverStatus");
+            JSONObject comando = makeComando("serverStatus");
             Transaction transaction = Transaction.newTransaction(serverAddress, serverPort);
 
             JSONObject response = transaction.fazerComando(comando);
@@ -164,7 +176,7 @@ public class ServerServices {
 
     // pararms
     public static enum ItemJSONArgs {
-        DATA, QUANTIDADE, UNIDADE, CODITEM, CLIENTE, COMPLEMENTO, MEIO_PGTO, VALOR_TOTAL;
+        DATA, QUANTIDADE, UNIDADE, CODITEM, CLIENTE, COMPLEMENTO, MEIO_PGTO, VALOR_TOTAL, OBSERVACOES;
 
         @Override
         public String toString() {
