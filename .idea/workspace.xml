@@ -44,42 +44,7 @@
     <option name="TOOL_WINDOW_LOG_LEVEL" value="WARN" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8b35827a-8bdd-4004-8974-608280f4c808" name="Default" comment="Comitando core novo, modularizado">
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\.idea\libraries\appcompat_v7_21_0_3.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\.idea\libraries\support_annotations_21_0_3.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\.idea\libraries\support_v4_21_0_3.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\app\src\main\java\com\alimec\joaquim\alimecproject\controle\VendaResult.java" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\app\src\main\java\com\alimec\joaquim\alimecproject\persistence\DatabaseHelper.java" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\app\src\main\java\com\alimec\joaquim\alimecproject\persistence\ItemDAO.java" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\app\src\main\java\com\alimec\joaquim\alimecproject\persistence\ProdutoRepository.java" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\app\src\main\java\com\alimec\joaquim\alimecproject\persistence\VendaDAO.java" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\app\src\main\java\com\alimec\joaquim\alimecproject\ws\NetworkUtils.java" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\app\src\main\java\com\alimec\joaquim\alimecproject\ws\ServerServices.java" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\app\src\main\java\com\alimec\joaquim\alimecproject\ws\Transaction.java" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\persistence\libs\ormlite-android-4.48.jar" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\persistence\libs\ormlite-core-4.48.jar" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\KithLenovo\Dropbox\Git - Joaquimmnetto\FrenteAlimec-Android\persistence\src\androidTest\java\joaquimneto\com\alimec\persistence\ApplicationTest.java" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/serverio/src/main/AndroidManifest.xml" afterPath="$PROJECT_DIR$/serverio/src/main/AndroidManifest.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/alimec/joaquim/alimecproject/activities/BeginActivity.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/alimec/joaquim/alimecproject/activities/BeginActivity.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/persistence/src/main/java/joaquimneto/com/alimec/persistence/interfaces/IVendaDAO.java" afterPath="$PROJECT_DIR$/persistence/src/main/java/joaquimneto/com/alimec/persistence/interfaces/IVendaDAO.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/alimec/joaquim/alimecproject/controle/IntialLoadController.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/alimec/joaquim/alimecproject/controle/IntialLoadController.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/model/src/main/java/joaquimneto/com/alimec/model/Item.java" afterPath="$PROJECT_DIR$/model/src/main/java/joaquimneto/com/alimec/model/Item.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/serverio/src/main/java/joaquimneto/com/alimec/serverio/ServerModule.java" afterPath="$PROJECT_DIR$/serverio/src/main/java/joaquimneto/com/alimec/serverio/ServerModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/model/src/main/java/joaquimneto/com/alimec/model/Venda.java" afterPath="$PROJECT_DIR$/model/src/main/java/joaquimneto/com/alimec/model/Venda.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/persistence/src/main/java/joaquimneto/com/alimec/persistence/dao/VendaDAO.java" afterPath="$PROJECT_DIR$/persistence/src/main/java/joaquimneto/com/alimec/persistence/dao/VendaDAO.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/persistence/src/main/java/joaquimneto/com/alimec/persistence/VendaDB.java" afterPath="$PROJECT_DIR$/persistence/src/main/java/joaquimneto/com/alimec/persistence/VendaDB.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/app.iml" afterPath="$PROJECT_DIR$/app/app.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/build.gradle" afterPath="$PROJECT_DIR$/build.gradle" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/persistence/build.gradle" afterPath="$PROJECT_DIR$/persistence/build.gradle" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/serverio/build.gradle" afterPath="$PROJECT_DIR$/serverio/build.gradle" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/gradle.xml" afterPath="$PROJECT_DIR$/.idea/gradle.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/model/model.iml" afterPath="$PROJECT_DIR$/model/model.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/persistence/persistence.iml" afterPath="$PROJECT_DIR$/persistence/persistence.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/serverio/serverio.iml" afterPath="$PROJECT_DIR$/serverio/serverio.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/settings.gradle" afterPath="$PROJECT_DIR$/settings.gradle" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
+    <list default="true" id="8b35827a-8bdd-4004-8974-608280f4c808" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="AlimecProject.iws" />
@@ -4169,7 +4134,11 @@
       <created>1449682484706</created>
       <updated>1449682484706</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Comitando core novo, modularizado">
+      <created>1453226976418</created>
+      <updated>1453226976418</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
