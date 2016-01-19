@@ -71,7 +71,6 @@ public class BeginActivity extends Activity {
             } catch (IOException e) {
                 e.printStackTrace();
                 publishProgress("Problemas com a conexão. Continuando em modo offline.");
-//                Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
             } finally {
                 publishProgress(NEXT_SCREEN);
             }

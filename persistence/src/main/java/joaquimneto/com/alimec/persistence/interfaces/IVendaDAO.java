@@ -13,4 +13,7 @@ public interface IVendaDAO {
 	public Venda[] getVendasAPartirDe(Date startingDate) throws SQLException;
 	
 	public Venda getVenda(long timestamp) throws SQLException;
+
+    public Venda[] getVendasPendentes() throws SQLException;
+
 }

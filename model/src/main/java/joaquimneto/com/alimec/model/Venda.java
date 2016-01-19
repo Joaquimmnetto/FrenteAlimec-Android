@@ -15,6 +15,7 @@ public class Venda implements JSONable{
     private String nomeCliente;
     private String cpfCnpj;
     private List<Item> itens = new ArrayList<Item>();
+    private boolean enviada;
 
     public Venda(){
         this.data = new Date();
@@ -27,10 +28,10 @@ public class Venda implements JSONable{
     }
 
     public Venda(Date data,String nomeCliente,String cpfCnpj){
-        this(data,nomeCliente,cpfCnpj, new ArrayList<Item>());
+        this(data,nomeCliente,cpfCnpj, new ArrayList<Item>(),false);
     }
 
-    public Venda(Date data,String nomeCliente,String cpfCnpj,List<Item> itens){
+    public Venda(Date data,String nomeCliente,String cpfCnpj,List<Item> itens, boolean enviada){
         this.data = data;
         this.nomeCliente = nomeCliente;
         this.cpfCnpj = cpfCnpj;
@@ -41,6 +42,8 @@ public class Venda implements JSONable{
         else{
         	this.itens = null;
         }
+
+        this.enviada = false;
         
     }
 
@@ -73,7 +76,8 @@ public class Venda implements JSONable{
 	    return itens;
 	}
 
-	public double getTotal() {
+
+    public double getTotal() {
 	    double total = 0;
 	    for (Item item : getItens()) {
 	        total += item.getPrecoTotal();
@@ -82,7 +86,23 @@ public class Venda implements JSONable{
 	    return total;
 	}
 
-	@Override
+    public boolean isEnviada() {
+        return enviada;
+    }
+
+    public void setEnviada(boolean enviada) {
+        this.enviada = enviada;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if( !(o instanceof Venda) ){
+            return false;
+        }
+        return data.equals(((Venda) o).getData());
+    }
+
+    @Override
     public String toString(){
 
         String descricao = "Cliente:"+nomeCliente+"\n" +

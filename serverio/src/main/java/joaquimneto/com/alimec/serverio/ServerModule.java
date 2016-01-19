@@ -17,87 +17,80 @@ import joaquimneto.com.alimec.model.Venda;
  */
 public class ServerModule implements IServerModule {
 
-	public static final String SERVER_SUCCESS = "success";
-	private static final int BROADCAST_PORT = 9008;
+    public static final String SERVER_SUCCESS = "success";
+    private static final int BROADCAST_PORT = 9008;
+    private static final String BROADCAST_ADDRESS;
 
-	private static String serverAddress = "localhost";
-	private static int serverPort = 9009;
+    static {
+        InetAddress broadcast = NetworkUtils.getEnderecoBroadcast();
+        if (broadcast != null) {
+            BROADCAST_ADDRESS = broadcast.getHostAddress();
+        } else {
+            BROADCAST_ADDRESS = "localhost";
+        }
+    }
 
-	private static final String BROADCAST_ADDRESS;
+    private static String serverAddress = "localhost";
+    private static int serverPort = 9009;
+    private static ServerModule instance = new ServerModule();
+    private boolean initialized = false;
 
-	static {
-		InetAddress broadcast = NetworkUtils.getEnderecoBroadcast();
-		if (broadcast != null) {
-			BROADCAST_ADDRESS = broadcast.getHostAddress();
-		} else {
-			BROADCAST_ADDRESS = "localhost";
-		}
-	}
+    public static ServerModule getInstance() {
+        instance = instance == null ? new ServerModule() : instance;
 
-	private boolean initialized = false;
-	
-	private static ServerModule instance = new ServerModule();
-	
-	public static ServerModule getInstance(){
-		instance = instance == null? new ServerModule() : instance;
-		
-		return instance;
-	}
-	
-	
-	private boolean initialize() throws IOException {
-		ResultadoProcuraServidor lookup = procurarServidor();
-		if (lookup.isSucesso()) {
-			serverAddress = lookup.getEndereco().getHostAddress();
-			serverPort = lookup.getPorta();
-			initialized = true;
-			return verificarConexao();
-		}
-		return false;
-	}
+        return instance;
+    }
 
-	private synchronized ResultadoProcuraServidor procurarServidor()  {
+    private ServerModule(){}
+
+    private boolean initialize() throws IOException {
+        ResultadoProcuraServidor lookup = procurarServidor();
+        if (lookup.isSucesso()) {
+            serverAddress = lookup.getEndereco().getHostAddress();
+            serverPort = lookup.getPorta();
+            initialized = true;
+            return verificarConexao();
+        }
+        return false;
+    }
+
+    private synchronized ResultadoProcuraServidor procurarServidor() throws IOException {
         String mensagemFalha = "";
-		try {
-			JSONObject comando = JSONUtils.makeComando("serverLookup");
-			JSONObject response = Transaction.newTransaction(BROADCAST_ADDRESS, BROADCAST_PORT).fazerComandoUDP(comando);
+        JSONObject comando = JSONUtils.makeComando("serverLookup");
+        JSONObject response = Transaction.newTransaction(BROADCAST_ADDRESS, BROADCAST_PORT).fazerComandoUDP(comando);
 
-            try {
-                if (response.getBoolean(SERVER_SUCCESS)) {
-                    response = response.getJSONObject("lookup");
-                    String endereco = response.getString("endereco");
-                    int porta = response.getInt("porta");
-                    String versao = response.optString("versao");
+        try {
+            if (response.getBoolean(SERVER_SUCCESS)) {
+                response = response.getJSONObject("lookup");
+                String endereco = response.getString("endereco");
+                int porta = response.getInt("porta");
+                String versao = response.optString("versao");
 
-                    return ResultadoProcuraServidor.gerarSucesso(InetAddress.getByName(endereco), porta, versao);
+                return ResultadoProcuraServidor.gerarSucesso(InetAddress.getByName(endereco), porta, versao);
 
-                } else {
-                    return ResultadoProcuraServidor.gerarFalha(response.getString("message"));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-                mensagemFalha = e.getMessage();
-
+            } else {
+                return ResultadoProcuraServidor.gerarFalha(response.getString("message"));
             }
-
-        } catch (IOException e) {
-			e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
             mensagemFalha = e.getMessage();
 
-		}
-        return ResultadoProcuraServidor.gerarFalha(mensagemFalha);
-	}
+        }
 
-	public synchronized ProdutoTO[] importarProdutos() throws IOException {
-		if (!initialized) {
-			if (!initialize()) {
-				return null;
-			}
-		}
+        return ResultadoProcuraServidor.gerarFalha(mensagemFalha);
+    }
+
+    @Override
+    public synchronized ProdutoTO[] importarProdutos() throws IOException {
+        if (!initialized) {
+            if (!initialize()) {
+                return null;
+            }
+        }
         try {
             JSONObject comando = null;
 
-                comando = JSONUtils.makeComando("importarProdutos");
+            comando = JSONUtils.makeComando("importarProdutos");
 
             JSONObject response = Transaction.newTransaction(serverAddress, serverPort).fazerComando(comando);
 
@@ -119,21 +112,24 @@ public class ServerModule implements IServerModule {
         }
 
         return null;
-	}
+    }
 
-	public synchronized boolean enviarVenda( Venda venda ) throws IOException, IllegalArgumentException {
-		return enviarVendas( new Venda[] { venda } );
-	}
+    @Override
+    public synchronized boolean enviarVenda(Venda venda) throws IOException, IllegalArgumentException {
+        return enviarVendas(new Venda[]{venda});
+    }
 
-	public synchronized boolean enviarVendas( Venda[] vendas ) throws IOException, IllegalArgumentException {
-		if (!initialized) {
-			if (!initialize()) {
-				return false;
-			}
-		}
-		for ( Venda venda : vendas ) {
-			Validador.validarVenda(venda);
-		}
+    @Override
+    public synchronized boolean enviarVendas(Venda[] vendas) throws IOException, IllegalArgumentException {
+        if (!initialized) {
+            if (!initialize()) {
+                return false;
+            }
+        }
+
+        for (Venda venda : vendas) {
+            Validador.validarVenda(venda);
+        }
         try {
             JSONObject comando = JSONUtils.makeComando("EnviarVenda", vendas);
 
@@ -146,33 +142,31 @@ public class ServerModule implements IServerModule {
             e.printStackTrace();
         }
         return false;
-	}
+    }
 
-	public boolean verificarConexao() throws IOException {
-		if (!initialized) {
-			if (!initialize()) {
-				return false;
-			}
-		}
+    @Override
+    public boolean verificarConexao() throws IOException {
+        if (!initialized) {
+            if (!initialize()) {
+                return false;
+            }
+        }
 
-		JSONObject comando = null;
-		try {
-			comando = JSONUtils.makeComando("serverStatus");
-			Transaction transaction = Transaction.newTransaction(serverAddress, serverPort);
+        JSONObject comando = null;
+        try {
+            comando = JSONUtils.makeComando("serverStatus");
+            Transaction transaction = Transaction.newTransaction(serverAddress, serverPort);
 
-			JSONObject response = transaction.fazerComando(comando);
+            JSONObject response = transaction.fazerComando(comando);
 
-			return response.getBoolean(SERVER_SUCCESS);
-		} catch (JSONException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+            return response.getBoolean(SERVER_SUCCESS);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
 
-		return false;
+    }
 
-	}
-
-	// pararms
+    // pararms
 
 }

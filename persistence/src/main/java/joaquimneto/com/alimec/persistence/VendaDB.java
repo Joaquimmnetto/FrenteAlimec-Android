@@ -19,6 +19,9 @@ public class VendaDB {
     String nomeCliente;
     @DatabaseField(canBeNull = true)
     String cpfCnpj;
+    @DatabaseField(canBeNull = false)
+    boolean enviado;
+
     public VendaDB(){}
 
     public VendaDB(Venda venda){

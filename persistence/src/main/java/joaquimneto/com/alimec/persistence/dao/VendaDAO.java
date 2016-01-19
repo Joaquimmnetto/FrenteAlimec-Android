@@ -61,7 +61,8 @@ public class VendaDAO implements IVendaDAO {
 
 		PreparedQuery<VendaDB> query = dao.queryBuilder().orderBy("data", true).where()
 				.gt("data", startingDate.getTime()).prepare();
-		List<VendaDB> result = dao.query(query);
+
+        List<VendaDB> result = dao.query(query);
 
 		for (VendaDB vendaDB : result) {
 			Venda venda = vendaDB.toModelo();
@@ -72,4 +73,23 @@ public class VendaDAO implements IVendaDAO {
 		return vendas.toArray(new Venda[vendas.size()]);
 	}
 
+    @Override
+    public Venda[] getVendasPendentes() throws SQLException {
+
+        IItemDAO itemDao = AbstractDaoFactory.getFactory().getItemDAO();
+        List<Venda> vendas = new ArrayList<>();
+
+        PreparedQuery<VendaDB> query = dao.queryBuilder().orderBy("data",true).where().eq("enviado",true).prepare();
+
+
+        List<VendaDB> result = dao.query(query);
+
+        for(VendaDB vendaDB : result){
+            Venda venda = vendaDB.toModelo();
+            venda.getItens().addAll(Arrays.asList(itemDao.getItensFromVenda(venda)));
+            vendas.add(venda);
+        }
+
+        return vendas.toArray(new Venda[vendas.size()]);
+    }
 }

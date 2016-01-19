@@ -3,23 +3,23 @@ package com.alimec.joaquim.alimecproject.controle;
 import android.content.Context;
 
 import com.alimec.joaquim.alimecproject.configs.ConfiguracaoPrivada;
-import com.alimec.joaquim.alimecproject.modelo.ResultadoProcuraServidor;
-import com.alimec.joaquim.alimecproject.persistence.DatabaseHelper;
-import com.alimec.joaquim.alimecproject.persistence.ProdutoRepository;
-import com.alimec.joaquim.alimecproject.modelo.ProdutoTO;
-import com.alimec.joaquim.alimecproject.ws.ServerServices;
-
-import org.json.JSONException;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Locale;
+
+import joaquimneto.com.alimec.model.ProdutoTO;
+import joaquimneto.com.alimec.persistence.dao.AbstractDaoFactory;
+import joaquimneto.com.alimec.persistence.dao.DatabaseHelper;
+import joaquimneto.com.alimec.serverio.IServerModule;
+import joaquimneto.com.alimec.serverio.ServerModule;
+import joaquimneto.com.alimec.vendas.VendasModule;
 
 /**
  * Created by KithLenovo on 02/05/2015.
  */
 public class IntialLoadController {
 
+    private IServerModule server = ServerModule.getInstance();
 
     public void initContext(Context context) {
 
@@ -28,49 +28,28 @@ public class IntialLoadController {
         Locale.setDefault(Locale.ENGLISH);
     }
 
-    public boolean verificarConexao() throws IOException{
-        try {
-            ResultadoProcuraServidor lookup = ServerServices.procurarServidor();
-            if(lookup.isSucesso()){
-                return ServerServices.configure(lookup);
-            }
-            else{
-                throw new IOException(lookup.getMensagem());
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean atualizarProdutos() throws IOException{
-        try {
-            if (ServerServices.haveUpdates()) {
-                ProdutoTO[] produtos = ServerServices.importarProdutos();
-
-                ProdutoRepository.getInstance().limparProdutos();
-                ProdutoRepository.getInstance().addProdutos(produtos);
-                return true;
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean enviarVendasOffline() throws IOException{
-        try {
-            VendaController.getInstance().enviarVendasPendentes();
+    public boolean verificarConexao() throws IOException {
+        if (server.verificarConexao()) {
             return true;
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } else {
+            throw new IOException("Servidor recusou a conexão");
         }
+    }
 
-        return false;
+    public boolean atualizarProdutos() throws IOException {
+
+        ProdutoTO[] produtos = server.importarProdutos();
+
+        AbstractDaoFactory.getFactory().getProdutoRepository().limparProdutos();
+        AbstractDaoFactory.getFactory().getProdutoRepository().addProdutos(produtos);
+
+        return true;
+
+    }
+
+
+    public boolean enviarVendasOffline() throws IOException {
+        return new VendasModule().enviarVendasPendentes();
     }
 
 }
