@@ -11,7 +11,9 @@
         android:inputType="textPersonName"
         android:ems="15"
         android:id="@+id/venda_nomeCliente"
-        android:hint="Nome do Cliente/Empresa" />
+        android:hint="Nome do Cliente/Empresa"
+        android:layout_toLeftOf="@+id/venda_addProduto"
+        android:layout_toStartOf="@+id/venda_addProduto"/>
 
     <EditText
         android:layout_width="wrap_content"
@@ -22,7 +24,9 @@
         android:layout_below="@+id/venda_nomeCliente"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:hint="CPF/CNPJ" />
+        android:hint="CPF/CNPJ"
+        android:layout_toLeftOf="@+id/venda_addProduto"
+        android:layout_toStartOf="@+id/venda_addProduto"/>
 
     <ListView
         android:layout_width="wrap_content"

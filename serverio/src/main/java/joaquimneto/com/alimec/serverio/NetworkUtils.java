@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Created by KithLenovo on 15/07/2015.
  */
-public class NetworkUtils {
+class NetworkUtils {
 
     public static InetAddress getEnderecoBroadcast() {
         try {

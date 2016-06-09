@@ -5,7 +5,7 @@ import java.net.InetAddress;
 /**
  * Created by KithLenovo on 15/07/2015.
  */
-public class ResultadoProcuraServidor {
+class ResultadoProcuraServidor {
 
     private InetAddress endereco;
     private String versao;

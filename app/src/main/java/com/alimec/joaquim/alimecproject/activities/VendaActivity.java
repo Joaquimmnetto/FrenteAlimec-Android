@@ -25,7 +25,6 @@ public class VendaActivity extends BaseMenuActivity {
 
         addMenuOption(null, VENDA_MENU, vendaFrag);
         addMenuOption(null, BUSCA_VENDA_MENU, buscaFrag);
-
     }
 
 

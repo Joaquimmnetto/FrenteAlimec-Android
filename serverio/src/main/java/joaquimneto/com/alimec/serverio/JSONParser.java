@@ -9,7 +9,7 @@ import joaquimneto.com.alimec.model.JSONable;
 import joaquimneto.com.alimec.model.ProdutoTO;
 import joaquimneto.com.alimec.model.Venda;
 
-public class JSONParser {
+class JSONParser {
 
 	public static JSONObject toJSON(JSONable obj){
 		if(obj instanceof Item){

@@ -1,9 +1,4 @@
-package joaquimneto.com.alimec.persistence.dao;
-
-//import android.content.Context;
-//import android.database.sqlite.SQLiteDatabase;
-//import android.database.sqlite.SQLiteOpenHelper;
-//import android.util.Log;
+package joaquimneto.com.alimec.persistence;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -13,10 +8,6 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
 import java.sql.SQLException;
-
-import joaquimneto.com.alimec.persistence.ItemDB;
-import joaquimneto.com.alimec.persistence.ProdutoDB;
-import joaquimneto.com.alimec.persistence.VendaDB;
 
 /**
 * Created by KithLenovo on 23/01/2015.

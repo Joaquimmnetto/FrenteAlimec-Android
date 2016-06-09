@@ -12,7 +12,7 @@ import joaquimneto.com.alimec.model.Venda;
  */
 
 @DatabaseTable
-public class VendaDB {
+class VendaDB {
     @DatabaseField(id = true, canBeNull = false, unique = true)
     long data;
     @DatabaseField(canBeNull = true)

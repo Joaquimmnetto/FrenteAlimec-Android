@@ -1,146 +1,67 @@
 package com.alimec.joaquim.alimecproject.controle;
 
-import com.alimec.joaquim.alimecproject.configs.ConfiguracaoPrivada;
-import com.alimec.joaquim.alimecproject.persistence.DatabaseHelper;
-import com.alimec.joaquim.alimecproject.persistence.VendaDAO;
-import com.alimec.joaquim.alimecproject.modelo.Venda;
-import com.alimec.joaquim.alimecproject.ws.ServerServices;
+import com.alimec.joaquim.alimecproject.activities.ItemTO;
 
-import org.json.JSONException;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
+
+import joaquimneto.com.alimec.model.Item;
+import joaquimneto.com.alimec.persistence.DBModuleException;
+import joaquimneto.com.alimec.serverio.ServerModule;
+import joaquimneto.com.alimec.serverio.ServerModuleException;
+import joaquimneto.com.alimec.vendas.IVendasModule;
+import joaquimneto.com.alimec.vendas.VendaResult;
+import joaquimneto.com.alimec.vendas.VendasModule;
+import joaquimneto.com.alimec.vendas.VendasModuleException;
 
 /**
  * Created by joaquim on 23/04/15.
  */
 public class VendaController {
 
-    public VendaDAO dao;
 
-    private static VendaController instance;
+    private IVendasModule mVenda = new VendasModule(ServerModule.getInstance());
 
-    private VendaController(){
-        dao = new VendaDAO(DatabaseHelper.getInstance());
+
+    public void carregar(long timestamp) throws VendasModuleException {
+        mVenda.carregar(timestamp);
     }
 
-    public static VendaController getInstance() {
-        if(instance == null){
-            instance = new VendaController();
-        }
-        return instance;
-    }
+     public void addItem(ItemTO item) throws VendasModuleException {
+        IVendasModule.MeioPgto pgto = VendasModule.MeioPgto.valueOf(item.meioPgto.toUpperCase());
 
-    public VendaResult enviarVenda(Venda venda){
-        if (venda.getItens().size() == 0) {
-            return new VendaResult(false,false,"Essa venda não tem produtos!");
-        }
-
-
-        boolean success = false;
-        try {
-            success = new VendaDAO(DatabaseHelper.getInstance()).addVenda(venda);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        if(success){
-           return enviarVendaSemPersistencia(venda);
-        }
-        else{
-            return new VendaResult(success,false,"Erro ao salvar a venda no banco de dados");
-        }
-
-    }
-
-    public VendaResult enviarVendaSemPersistencia(Venda venda) {
-        boolean sent = false;
-        try {
-            sent = ServerServices.enviarVenda(venda);
-            if (sent) {
-                ConfiguracaoPrivada.getInstance().setDataUltimaVenda(venda.getData());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new VendaResult(false, sent, "Um erro inesperado ocorreu");
-        }
-
-        return new VendaResult(true, sent, "Venda enviada com sucesso");
-    }
-
-    public VendaResult enviarVendasPendentes() throws IOException, JSONException, SQLException {
-        VendaDAO dao = new VendaDAO(DatabaseHelper.getInstance());
-        Date ultimaVendaEnviada = ConfiguracaoPrivada.getInstance().getDataUltimaVenda();
-        Venda[] vendas = dao.getVendasAPartirDe(ultimaVendaEnviada);
-
-        if (vendas.length > 0) {
-
-            boolean sent = ServerServices.enviarVendas(vendas);
-            if (sent) {
-                long biggest = 0;
-
-                for (Venda v : vendas) {
-                    if (v.getData().getTime() > biggest) {
-                        biggest = v.getData().getTime();
-                    }
-                }
-                ConfiguracaoPrivada.getInstance().setDataUltimaVenda(new Date(biggest));
-            }
-            return new VendaResult(true, sent, "Vendas enviadas com sucesso");
-        } else {
-            return new VendaResult(true, false, "Sem vendas para enviar");
-        }
+        mVenda.criarItem(item.codProduto,item.quantidade,item.unidade,item.precoUnitario,
+                        pgto,item.comentarios,item.observacoes);
     }
 
 
-
-    public List<Venda> buscaMes() throws SQLException {
-        Date ultimoMes = new Date(new Date().getTime() - new Date(0,1,0).getTime());
-
-        Venda[] resultado = dao.getVendasAPartirDe(ultimoMes);
-
-        if(resultado == null){
-            return new ArrayList<>();
-        }
-
-        return Arrays.asList(resultado);
+    public List<Item> getItens(){
+        return mVenda.getItens();
     }
 
-    public List<Venda> buscaHoje() throws SQLException {
-        Calendar hoje = GregorianCalendar.getInstance();
-        hoje.set(Calendar.HOUR_OF_DAY,0);
-        hoje.set(Calendar.MINUTE,0);
-        hoje.set(Calendar.SECOND,0);
-        hoje.set(Calendar.MILLISECOND,0);
-
-        Venda[] resultado = dao.getVendasAPartirDe(hoje.getTime());
-
-        if(resultado == null){
-            return new ArrayList<>();
-        }
-
-        return Arrays.asList(resultado);
+    public VendaResult finalizar(String cliente, String cpfCnpj) throws VendasModuleException {
+       return mVenda.finalizar(cliente,cpfCnpj);
     }
 
-    public List<Venda> buscaHora() throws SQLException {
-        Calendar hoje = GregorianCalendar.getInstance();
-        hoje.set(Calendar.HOUR_OF_DAY,hoje.get(Calendar.HOUR_OF_DAY)-1);
-
-        Venda[] resultado = dao.getVendasAPartirDe(hoje.getTime());
-
-        if(resultado == null){
-            return new ArrayList<>();
-        }
-
-        return Arrays.asList(resultado);
+    public boolean enviarVendasPendentes() throws DBModuleException, ServerModuleException {
+       return mVenda.enviarVendasPendentes();
     }
 
+
+    public void atualizaItem(Item item, boolean manter) {
+        if(manter){
+            mVenda.atualizarItem(item);
+        }else{
+            mVenda.removerItem(item.getId());
+        }
+
+    }
+
+    public double calcularTotal() {
+        double total = 0;
+        for(Item i:getItens()){
+            total += i.getPrecoTotal();
+        }
+        return total;
+    }
 
 }

@@ -9,9 +9,11 @@ import android.widget.TextView;
 import com.alimec.joaquim.alimecproject.R;
 import com.alimec.joaquim.alimecproject.controle.IntialLoadController;
 
-import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import joaquimneto.com.alimec.persistence.DBModuleException;
+import joaquimneto.com.alimec.serverio.ServerModuleException;
 
 /**
  * Created by KithLenovo on 24/01/2015.
@@ -63,12 +65,16 @@ public class BeginActivity extends Activity {
                     publishProgress("Atualizando a base de produtos...");
                     load.atualizarProdutos();
                     publishProgress("Enviando vendas acumuladas em modo offline...");
-                    load.enviarVendasOffline();
+                    load.enviarVendasPendentes();
                 } else {
                     publishProgress("Conexão com o servidor não disponível.");
                 }
 
-            } catch (IOException e) {
+            } catch (DBModuleException e) {
+                e.printStackTrace();
+                publishProgress("Problemas na conexão com o banco de dados. Por favor, reeinicie a aplicação.");
+                finish();
+            } catch (ServerModuleException e) {
                 e.printStackTrace();
                 publishProgress("Problemas com a conexão. Continuando em modo offline.");
             } finally {
@@ -94,7 +100,7 @@ public class BeginActivity extends Activity {
         @Override
         protected Void doInBackground(Void... params) {
             int polkas = 0;
-            while (!BeginActivity.this.isDestroyed()) {
+            while (!BeginActivity.this.isFinishing()) {
                 trySleep(200);
                 polkas++;
                 polkas = polkas % MAX_DOTS;

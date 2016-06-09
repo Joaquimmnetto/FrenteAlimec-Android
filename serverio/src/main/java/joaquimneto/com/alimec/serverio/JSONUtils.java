@@ -6,7 +6,7 @@ import org.json.JSONObject;
 
 import joaquimneto.com.alimec.model.JSONable;
 
-public class JSONUtils {
+class JSONUtils {
 
 	public static JSONObject makeComando(String nomeComando)  {
 		return makeComando(nomeComando, (JSONArray) null);

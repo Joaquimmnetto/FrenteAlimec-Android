@@ -1,20 +1,18 @@
 package joaquimneto.com.alimec.serverio;
 
-import java.io.IOException;
-
 import joaquimneto.com.alimec.model.ProdutoTO;
 import joaquimneto.com.alimec.model.Venda;
 
 
 public interface IServerModule {
 
-	boolean enviarVenda(Venda venda) throws IOException, IllegalArgumentException;
+	boolean enviarVenda(Venda venda) throws ServerModuleException;
 
-	boolean enviarVendas(Venda[] vendas) throws IOException, IllegalArgumentException;
+	boolean enviarVendas(Venda[] vendas) throws ServerModuleException;
 
-	ProdutoTO[] importarProdutos() throws IOException ;
+	ProdutoTO[] importarProdutos() throws ServerModuleException;
 	
-	boolean verificarConexao() throws IOException;
+	boolean verificarConexao() throws ServerModuleException;
 
 	
 

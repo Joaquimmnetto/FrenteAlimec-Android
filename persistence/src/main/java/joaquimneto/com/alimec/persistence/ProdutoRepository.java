@@ -1,4 +1,4 @@
-package joaquimneto.com.alimec.persistence.dao;
+package joaquimneto.com.alimec.persistence;
 
 
 import com.j256.ormlite.dao.Dao;
@@ -16,10 +16,8 @@ import joaquimneto.com.alimec.model.Categoria;
 import joaquimneto.com.alimec.model.Produto;
 import joaquimneto.com.alimec.model.ProdutoComposite;
 import joaquimneto.com.alimec.model.ProdutoTO;
-import joaquimneto.com.alimec.persistence.ProdutoDB;
-import joaquimneto.com.alimec.persistence.interfaces.IProdutoRepository;
 
-public class ProdutoRepository implements IProdutoRepository {
+class ProdutoRepository implements IProdutoRepository {
 
     public static final String RAIZ_COD = "raiz";
     private Map<String, ProdutoComposite> produtoCompositeMap;
@@ -27,10 +25,11 @@ public class ProdutoRepository implements IProdutoRepository {
     private Dao<ProdutoDB, String> dao;
 
 	ProdutoRepository(Dao<ProdutoDB, String> dao) {
-		this.dao = dao;
+		this.dao =  dao;
 	}
 
-    public void addProdutos(ProdutoTO[] produtosTO) {
+    @Override
+    public void addProdutos(ProdutoTO[] produtosTO) throws DBModuleException{
         try {
             Map<String, ProdutoTO> produtoTOMap = criarProdutoTOMap(produtosTO);
             Map<String, ProdutoDB> arvoreProdutoDB = criarArvoreProdutoDB(produtoTOMap);
@@ -38,11 +37,12 @@ public class ProdutoRepository implements IProdutoRepository {
             produtoCompositeMap = criarProdutosFromDB();
         } catch (SQLException e) {
             e.printStackTrace();
+            throw new DBModuleException(e);
         }
 
     }
 
-
+    @Override
     public Produto[] getProdutos() {
         if (produtoCompositeMap == null) {
             produtoCompositeMap = criarProdutosFromDB();
@@ -77,6 +77,7 @@ public class ProdutoRepository implements IProdutoRepository {
 
     }
 
+    @Override
     public String[] getListaCodigos() {
         return produtoCompositeMap.keySet().toArray(new String[produtoCompositeMap.keySet().size()]);
     }
@@ -91,7 +92,7 @@ public class ProdutoRepository implements IProdutoRepository {
             return null;
         }
     }
-
+    @Override
     public Produto getProduto(String prodCode) {
 
         ProdutoComposite prod = getProdutoComposite(prodCode);
@@ -103,21 +104,22 @@ public class ProdutoRepository implements IProdutoRepository {
         return null;
 
     }
-
-    public ProdutoDB getProdutoDB(ProdutoComposite produto) {
+    @Override
+    public ProdutoDB getProdutoDB(ProdutoComposite produto) throws DBModuleException{
 	    try {
 	        return dao.queryForId(produto.getCodigo());
 	    } catch (SQLException e) {
 	        e.printStackTrace();
+            throw new DBModuleException(e);
 	    }
-	    return null;
 	}
-
-	public void limparProdutos() {
+    @Override
+	public void limparProdutos() throws DBModuleException {
     	try {
 			dao.deleteBuilder().delete();
 		} catch (SQLException e) {
 			e.printStackTrace();
+            throw new DBModuleException(e);
 		}
     }
 

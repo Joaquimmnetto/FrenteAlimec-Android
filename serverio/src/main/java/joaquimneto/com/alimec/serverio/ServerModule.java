@@ -20,6 +20,10 @@ public class ServerModule implements IServerModule {
     public static final String SERVER_SUCCESS = "success";
     private static final int BROADCAST_PORT = 9008;
     private static final String BROADCAST_ADDRESS;
+    private static String serverAddress = "localhost";
+    private static int serverPort = 9009;
+
+    private static ServerModule instance = new ServerModule();
 
     static {
         InetAddress broadcast = NetworkUtils.getEnderecoBroadcast();
@@ -30,9 +34,6 @@ public class ServerModule implements IServerModule {
         }
     }
 
-    private static String serverAddress = "localhost";
-    private static int serverPort = 9009;
-    private static ServerModule instance = new ServerModule();
     private boolean initialized = false;
 
     public static ServerModule getInstance() {
@@ -41,9 +42,10 @@ public class ServerModule implements IServerModule {
         return instance;
     }
 
-    private ServerModule(){}
+    private ServerModule() {
+    }
 
-    private boolean initialize() throws IOException {
+    private boolean initialize() throws ServerModuleException, IOException {
         ResultadoProcuraServidor lookup = procurarServidor();
         if (lookup.isSucesso()) {
             serverAddress = lookup.getEndereco().getHostAddress();
@@ -81,89 +83,103 @@ public class ServerModule implements IServerModule {
     }
 
     @Override
-    public synchronized ProdutoTO[] importarProdutos() throws IOException {
-        if (!initialized) {
-            if (!initialize()) {
-                return null;
-            }
-        }
+    public synchronized ProdutoTO[] importarProdutos() throws ServerModuleException {
+
         try {
-            JSONObject comando = null;
-
-            comando = JSONUtils.makeComando("importarProdutos");
-
-            JSONObject response = Transaction.newTransaction(serverAddress, serverPort).fazerComando(comando);
-
-            ArrayList<ProdutoTO> result = new ArrayList<>();
-
-            if (response.getBoolean(SERVER_SUCCESS)) {
-                JSONArray produtos = response.getJSONArray("produtos");
-                for (int i = 0; i < produtos.length(); i++) {
-                    JSONObject produto = produtos.getJSONObject(i);
-                    result.add(JSONParser.toProdutoTO(produto));
-
+            if (!initialized) {
+                if (!initialize()) {
+                    return null;
                 }
-                return result.toArray(new ProdutoTO[result.size()]);
-            } else {
-                return null;
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+            try {
+                JSONObject comando = null;
 
-        return null;
+                comando = JSONUtils.makeComando("importarProdutos");
+
+                JSONObject response = Transaction.newTransaction(serverAddress, serverPort).fazerComando(comando);
+
+                ArrayList<ProdutoTO> result = new ArrayList<>();
+
+                if (response.getBoolean(SERVER_SUCCESS)) {
+                    JSONArray produtos = response.getJSONArray("produtos");
+                    for (int i = 0; i < produtos.length(); i++) {
+                        JSONObject produto = produtos.getJSONObject(i);
+                        result.add(JSONParser.toProdutoTO(produto));
+
+                    }
+                    return result.toArray(new ProdutoTO[result.size()]);
+                } else {
+                    return null;
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        } catch (Exception e) {
+            throw new ServerModuleException(e);
+        }
     }
 
     @Override
-    public synchronized boolean enviarVenda(Venda venda) throws IOException, IllegalArgumentException {
+    public synchronized boolean enviarVenda(Venda venda) throws ServerModuleException {
         return enviarVendas(new Venda[]{venda});
     }
 
     @Override
-    public synchronized boolean enviarVendas(Venda[] vendas) throws IOException, IllegalArgumentException {
-        if (!initialized) {
-            if (!initialize()) {
-                return false;
-            }
-        }
-
-        for (Venda venda : vendas) {
-            Validador.validarVenda(venda);
-        }
+    public synchronized boolean enviarVendas(Venda[] vendas) throws ServerModuleException {
         try {
-            JSONObject comando = JSONUtils.makeComando("EnviarVenda", vendas);
 
-            Transaction transaction = Transaction.newTransaction(serverAddress, serverPort);
-            JSONObject response = transaction.fazerComando(comando);
+            if (!initialized) {
+                if (!initialize()) {
+                    return false;
+                }
+            }
 
-            return response.getBoolean(SERVER_SUCCESS);
+            for (Venda venda : vendas) {
+                Validador.validarVenda(venda);
+            }
+            try {
+                JSONObject comando = JSONUtils.makeComando("EnviarVenda", vendas);
 
-        } catch (JSONException e) {
-            e.printStackTrace();
+                Transaction transaction = Transaction.newTransaction(serverAddress, serverPort);
+                JSONObject response = transaction.fazerComando(comando);
+
+                return response.getBoolean(SERVER_SUCCESS);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return false;
+        } catch (Exception e) {
+            throw new ServerModuleException(e);
         }
-        return false;
     }
 
     @Override
-    public boolean verificarConexao() throws IOException {
-        if (!initialized) {
-            if (!initialize()) {
-                return false;
-            }
-        }
-
-        JSONObject comando = null;
+    public boolean verificarConexao() throws ServerModuleException {
         try {
-            comando = JSONUtils.makeComando("serverStatus");
-            Transaction transaction = Transaction.newTransaction(serverAddress, serverPort);
+            if (!initialized) {
+                if (!initialize()) {
+                    return false;
+                }
+            }
 
-            JSONObject response = transaction.fazerComando(comando);
+            JSONObject comando = null;
+            try {
+                comando = JSONUtils.makeComando("serverStatus");
+                Transaction transaction = Transaction.newTransaction(serverAddress, serverPort);
 
-            return response.getBoolean(SERVER_SUCCESS);
-        } catch (JSONException e) {
-            e.printStackTrace();
+                JSONObject response = transaction.fazerComando(comando);
+
+                return response.getBoolean(SERVER_SUCCESS);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return false;
+        } catch (Exception e) {
+            throw new ServerModuleException(e);
         }
-        return false;
 
     }
 

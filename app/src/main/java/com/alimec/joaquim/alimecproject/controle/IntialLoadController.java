@@ -4,14 +4,16 @@ import android.content.Context;
 
 import com.alimec.joaquim.alimecproject.configs.ConfiguracaoPrivada;
 
-import java.io.IOException;
 import java.util.Locale;
 
 import joaquimneto.com.alimec.model.ProdutoTO;
-import joaquimneto.com.alimec.persistence.dao.AbstractDaoFactory;
-import joaquimneto.com.alimec.persistence.dao.DatabaseHelper;
+import joaquimneto.com.alimec.persistence.AbstractDaoFactory;
+import joaquimneto.com.alimec.persistence.DBModuleException;
+import joaquimneto.com.alimec.persistence.DatabaseHelper;
+import joaquimneto.com.alimec.persistence.IProdutoRepository;
 import joaquimneto.com.alimec.serverio.IServerModule;
 import joaquimneto.com.alimec.serverio.ServerModule;
+import joaquimneto.com.alimec.serverio.ServerModuleException;
 import joaquimneto.com.alimec.vendas.VendasModule;
 
 /**
@@ -20,36 +22,39 @@ import joaquimneto.com.alimec.vendas.VendasModule;
 public class IntialLoadController {
 
     private IServerModule server = ServerModule.getInstance();
+    private IProdutoRepository repo = AbstractDaoFactory.getFactory().getProdutoRepository();
 
     public void initContext(Context context) {
 
         DatabaseHelper.initiate(context);
         ConfiguracaoPrivada.getInstance().initiate(context);
         Locale.setDefault(Locale.ENGLISH);
+
     }
 
-    public boolean verificarConexao() throws IOException {
-        if (server.verificarConexao()) {
-            return true;
-        } else {
-            throw new IOException("Servidor recusou a conexão");
+    public boolean verificarConexao(){
+        try {
+            return server.verificarConexao();
+        } catch (ServerModuleException e) {
+            e.printStackTrace();
         }
+        return false;
     }
 
-    public boolean atualizarProdutos() throws IOException {
+    public boolean atualizarProdutos() throws ServerModuleException, DBModuleException {
 
         ProdutoTO[] produtos = server.importarProdutos();
 
-        AbstractDaoFactory.getFactory().getProdutoRepository().limparProdutos();
-        AbstractDaoFactory.getFactory().getProdutoRepository().addProdutos(produtos);
+        repo.limparProdutos();
+        repo.addProdutos(produtos);
 
         return true;
 
     }
 
 
-    public boolean enviarVendasOffline() throws IOException {
-        return new VendasModule().enviarVendasPendentes();
+    public boolean enviarVendasPendentes() throws DBModuleException, ServerModuleException {
+        return new VendasModule(server).enviarVendasPendentes();
     }
 
 }

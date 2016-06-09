@@ -9,7 +9,7 @@ import joaquimneto.com.alimec.model.ProdutoTO;
  * Created by KithLenovo on 29/07/2015.
  */
 @DatabaseTable
-public class ProdutoDB {
+class ProdutoDB {
 
     @DatabaseField(id = true, unique = true, canBeNull = false)
     public String codigo;

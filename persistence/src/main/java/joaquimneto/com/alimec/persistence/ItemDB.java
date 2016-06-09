@@ -5,13 +5,14 @@ import com.j256.ormlite.table.DatabaseTable;
 
 import joaquimneto.com.alimec.model.Item;
 import joaquimneto.com.alimec.model.Venda;
-import joaquimneto.com.alimec.persistence.dao.AbstractDaoFactory;
 
 /**
  * Created by KithLenovo on 29/07/2015.
  */
 @DatabaseTable
-public class ItemDB {
+class ItemDB {
+
+
 	@DatabaseField(id = true)
 	String id;
 	@DatabaseField(foreign = true, foreignAutoRefresh = true)
@@ -38,9 +39,9 @@ public class ItemDB {
 	public ItemDB() {
 	}
 
-	public ItemDB(Item item) {
-		
-		produto = AbstractDaoFactory.getFactory().getProdutoRepository().getProdutoDB(item.getProduto());
+	public ItemDB(Item item, ProdutoDB produto) {
+		//WROOOONG
+		this.produto = produto;
 		venda = new VendaDB(item.getVenda());
 		quantidade = item.getQuantidade();
 		unidade = item.getUnidade();
@@ -51,7 +52,7 @@ public class ItemDB {
 		comentario = item.getComentario();
 		observacoes = item.getObservacoes();
 		
-		id = Long.toString(venda.data) + item.getIndex();
+		id = Long.toString(venda.data) + item.getId();
 	}
 
 	public Item toModelo(Venda vendaModelo) {

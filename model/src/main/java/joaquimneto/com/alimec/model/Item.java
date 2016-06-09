@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by KithLenovo on 23/01/2015.
  */
-public class Item implements Serializable, JSONable {
+public class Item implements Serializable, JSONable, Cloneable {
 
 
     /**
@@ -14,7 +14,7 @@ public class Item implements Serializable, JSONable {
     private static final long serialVersionUID = 4030022527137087920L;
 
 
-    private long index;
+    private long id;
     private Produto produto;
     private Venda venda;
     private double quantidade;
@@ -26,8 +26,8 @@ public class Item implements Serializable, JSONable {
     private String comentario;
     private String observacoes;
 
-    public Item(long index, Produto produto, Venda venda, double quantidade, String unidade, double precoUnitario, double descontos, String meioPgto, double precoTotal, String comentario, String observacoes) {
-        this.index = index;
+    public Item(long id, Produto produto, Venda venda, double quantidade, String unidade, double precoUnitario, double descontos, String meioPgto, double precoTotal, String comentario, String observacoes) {
+        this.id = id;
         this.produto = produto;
         this.venda = venda;
         this.quantidade = quantidade;
@@ -40,12 +40,13 @@ public class Item implements Serializable, JSONable {
         this.observacoes = observacoes;
     }
 
-    public long getIndex() {
-        return index;
+
+    public long getId() {
+        return id;
     }
 
-    public void setIndex(long index) {
-        this.index = index;
+    public void setId(long id) {
+        this.id = id;
     }
 
     public Produto getProduto() {
@@ -74,6 +75,10 @@ public class Item implements Serializable, JSONable {
 
     public String getUnidade() {
         return unidade;
+    }
+
+    public void setUnidade(String unidade) {
+        this.unidade = unidade;
     }
 
     public double getPrecoUnitario() {
@@ -136,7 +141,7 @@ public class Item implements Serializable, JSONable {
         }
 
         if(venda == null && ((Item) o).getVenda() == null){
-            return index == ((Item) o).getIndex();
+            return id == ((Item) o).getId();
         }
 
         if( (venda == null && ((Item) o).getVenda() != null) || ( ((Item) o).getVenda() == null && venda != null) ){
@@ -144,6 +149,6 @@ public class Item implements Serializable, JSONable {
         }
 
 
-        return (venda.equals(((Item) o).getVenda()) && index == ((Item) o).getIndex());
+        return (venda.equals(((Item) o).getVenda()) && id == ((Item) o).getId());
     }
 }
