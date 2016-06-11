@@ -20,6 +20,8 @@ import com.alimec.joaquim.alimecproject.activities.fragment.dialog.ItemDialogFra
 import com.alimec.joaquim.alimecproject.activities.fragment.dialog.RetDialogFragment;
 import com.alimec.joaquim.alimecproject.controle.VendaController;
 
+import java.util.Locale;
+
 import joaquimneto.com.alimec.model.Item;
 import joaquimneto.com.alimec.vendas.VendaResult;
 import joaquimneto.com.alimec.vendas.VendasModuleException;
@@ -78,10 +80,10 @@ public class VendaFragment extends Fragment {
 //
 //        }
 //        atualizarTotal();
-        preencherTela(venda);
+        preencherTela();
     }
 
-    private void preencherTela(VendaController venda) {
+    private void preencherTela() {
         vCliente.setText(cliente);
         vCpfCnpj.setText(cpfCnpj);
         adapter.setItens(venda.getItens());
@@ -96,6 +98,7 @@ public class VendaFragment extends Fragment {
         super.onPause();
         //TODO: porque eu comentei isso? Arranjar alternativas.
 //        SharedPreferences pref = getActivity().getPreferences(Activity.MODE_PRIVATE);
+
 //
 //        preencherVenda(venda);
 //        pref.edit().putString(VENDA_SHARED_PREF, venda.getVenda().toJSON().toString());
@@ -236,12 +239,16 @@ public class VendaFragment extends Fragment {
     }
 
     private void limparFragmento() {
+        cliente = "";
+        cpfCnpj = "";
+        venda = new VendaController();
 
+        preencherTela();
     }
 
 
     private void atualizarTotal() {
-        ((TextView) baseView.findViewById(R.id.venda_total)).setText(String.format("R$%.2f", venda.calcularTotal()));
+        ((TextView) baseView.findViewById(R.id.venda_total)).setText(String.format(new Locale("pt","BR"),"R$%.2f", venda.calcularTotal()));
     }
 
 

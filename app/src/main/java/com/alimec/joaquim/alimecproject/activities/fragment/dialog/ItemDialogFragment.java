@@ -18,6 +18,8 @@ import com.alimec.joaquim.alimecproject.R;
 import com.alimec.joaquim.alimecproject.activities.ItemTO;
 import com.alimec.joaquim.alimecproject.controle.ProdutoController;
 
+import java.util.Locale;
+
 import joaquimneto.com.alimec.model.Produto;
 
 
@@ -30,24 +32,32 @@ public class ItemDialogFragment extends RetDialogFragment {
     public static final String EDIT_ITEM_MODE = "produtoEdit";
     public static final String ITEM_SELECIONADO = "itemSelecionado";
 
+    private Locale locale = new Locale("pt", "BR");
+
     private boolean modoEdicao;
 
-    private ProdutoController produto;
+    private ProdutoController produtoController = ProdutoController.getInstance();
 
     private Produto prodSelecionado = null;
     private ItemTO item = null;
 
+
     private AutoCompleteTextView descricao;
     private EditText quantidadeView;
+    private double quantidade;
+
     private EditText unidadeView;
+
     private EditText precoUnitarioView;
+    private double precoUnitario;
+
     private Spinner modoPgtoView;
+
     private EditText precoTotalView;
+    private double precoTotal;
 
     private EditText comentarios;
     private EditText observacoes;
-
-
 
 
     private DialogInterface.OnClickListener positiveAction = new DialogInterface.OnClickListener() {
@@ -56,20 +66,21 @@ public class ItemDialogFragment extends RetDialogFragment {
         public void onClick(DialogInterface dialog, int which) {
             try {
                 descricao.requestFocusFromTouch();
+
                 ItemTO itemTO = new ItemTO();
                 itemTO.codProduto = prodSelecionado.getCodigo();
-                //itemTO.quantidade = getDouble(quantidadeView);
+                itemTO.quantidade = quantidade;
                 itemTO.unidade = unidadeView.getText().toString().isEmpty() ? "UN" : unidadeView.getText().toString();
-                //itemTO.precoUnitario = getDouble(precoUnitarioView);
+                itemTO.precoUnitario = precoUnitario;
                 itemTO.comentarios = comentarios.getText().toString();
                 itemTO.meioPgto = modoPgtoView.getSelectedItem().toString();
                 itemTO.observacoes = observacoes.getText().toString();
 
                 if (prodSelecionado == null) {
-                    throw new IllegalArgumentException("Selecione um produto!");
+                    throw new IllegalArgumentException("Selecione um produtoController!");
                 }
 
-                ItemDialogFragment.this.item = itemTO;
+//                ItemDialogFragment.this.item = itemTO;
 
                 dialogSuccess(itemTO, true);
 
@@ -98,7 +109,6 @@ public class ItemDialogFragment extends RetDialogFragment {
     };
 
 
-
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         View dialogView = View.inflate(getActivity(), R.layout.dialog_produto, null);
@@ -107,7 +117,7 @@ public class ItemDialogFragment extends RetDialogFragment {
         if (modoEdicao) {
             preencherValorArgumentos();
         }
-        setAutoCompleteListeners(dialogView);
+        setAutoCompleteListeners();
 
 
         AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity()).
@@ -115,12 +125,9 @@ public class ItemDialogFragment extends RetDialogFragment {
                 setPositiveButton("Confirmar", positiveAction).
                 setNegativeButton("Voltar", negativeAction);
 
-        if(modoEdicao){
+        if (modoEdicao) {
             dialog.setNeutralButton("Remover", neutralAction);
         }
-
-
-
 
         return dialog.create();
     }
@@ -130,13 +137,13 @@ public class ItemDialogFragment extends RetDialogFragment {
 
         if (getArguments() != null) {
             item = (ItemTO) getArguments().getSerializable(ITEM_SELECIONADO);
-            modoEdicao = ( item != null );
-        }else{
+            modoEdicao = (item != null);
+        } else {
             modoEdicao = false;
         }
 
-        if(modoEdicao){
-            prodSelecionado = produto.getProduto(item.codProduto);
+        if (modoEdicao) {
+            prodSelecionado = produtoController.getProduto(item.codProduto);
         }
 
         descricao = (AutoCompleteTextView) parent.findViewById(R.id.produto_descricao);
@@ -152,12 +159,10 @@ public class ItemDialogFragment extends RetDialogFragment {
 
     private void preencherValorArgumentos() {
         descricao.setText(prodSelecionado.toString());
-        quantidadeView.setText(String.format("%.2f", item.quantidade));
+        quantidadeView.setText(String.format(locale, "%.3f", item.quantidade));
         unidadeView.setText(item.unidade);
-        precoUnitarioView.setText(String.format("%.2f", item.precoUnitario));
+        precoUnitarioView.setText(String.format(locale, "%.3f", item.precoUnitario));
 
-        double valPrecoTotal = item.precoUnitario * item.quantidade;
-        precoTotalView.setText(String.format("%.2f", valPrecoTotal));
 
         comentarios.setText(item.comentarios);
         observacoes.setText(item.observacoes);
@@ -165,12 +170,11 @@ public class ItemDialogFragment extends RetDialogFragment {
     }
 
 
-
-    private void setAutoCompleteListeners(View parent) {
+    private void setAutoCompleteListeners() {
 
         modoPgtoView.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, getActivity().getResources().getStringArray(R.array.meio_pagamento)));
 
-        descricao.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, produto.getProdutos()));
+        descricao.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, produtoController.getProdutos()));
 
         descricao.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -180,58 +184,87 @@ public class ItemDialogFragment extends RetDialogFragment {
         });
 
 
-
         quantidadeView.addTextChangedListener(new TextWatcher() {
+            String oldText;
+
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                oldText = s.toString();
+            }
+
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
             @Override
             public void afterTextChanged(Editable s) {
-                item.quantidade = toDouble(s.toString());
-                double precoTotal = item.quantidade * item.precoUnitario;
-
-                if(precoTotalView.getText().toString().trim().equals("") && precoTotal == 0){
+                if (s.toString().equals(oldText)) {
                     return;
                 }
-                precoTotalView.setText(String.format("%.2f", precoTotal));
+
+                quantidade = toDouble(s.toString());
+                precoTotal = quantidade * precoUnitario;
+
+                if (precoTotalView.getText().toString().trim().equals("") && precoTotal == 0) {
+                    return;
+                }
+                precoTotalView.setText(String.format(locale, "%.3f", precoTotal));
             }
         });
 
         precoUnitarioView.addTextChangedListener(new TextWatcher() {
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            String oldText = "";
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                oldText = s.toString();
+            }
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
             @Override
             public void afterTextChanged(Editable s) {
-                double precoUnitario = toDouble(s.toString());
-
-                if(precoUnitario != item.precoUnitario){
-                    item.precoUnitario = precoUnitario;
-                    double precoTotal = item.quantidade * item.precoUnitario;
-
-                    if(precoTotalView.getText().toString().trim().equals("") && precoTotal == 0){
-                        return;
-                    }
-                    precoTotalView.setText(String.format("%.2f", precoTotal));
+                if (s.toString().equals(oldText)) {
+                    return;
                 }
+
+                precoUnitario = toDouble(s.toString());
+                precoTotal = quantidade * precoUnitario;
+
+                if (precoTotalView.getText().toString().trim().equals("") && precoTotal == 0) {
+                    return;
+                }
+                precoTotalView.setText(String.format(locale, "%.3f", precoTotal));
+
             }
         });
 
         precoTotalView.addTextChangedListener(new TextWatcher() {
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            String oldText;
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                oldText = s.toString();
+            }
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
             @Override
             public void afterTextChanged(Editable s) {
-                double precoTotal = toDouble(s.toString());
-                if(precoTotal != item.quantidade * item.precoUnitario){
-
-                    item.precoUnitario = (item.quantidade * item.precoUnitario) / precoTotal;
-                    if(precoUnitarioView.getText().toString().trim().equals("") && item.precoUnitario == 0){
-                        return;
-                    }
-                    precoUnitarioView.setText(String.format("%.2f", item.precoUnitario));
+                if (s.toString().equals(oldText)) {
+                    return;
                 }
+
+                precoTotal = toDouble(s.toString());
+
+                precoUnitario = precoTotal / quantidade;
+
+                if (precoUnitarioView.getText().toString().trim().equals("") && precoUnitario == 0) {
+                    return;
+                }
+                precoUnitarioView.setText(String.format(locale, "%.3f", precoUnitario));
             }
+
         });
     }
 

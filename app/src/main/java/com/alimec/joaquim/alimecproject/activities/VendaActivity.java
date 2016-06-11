@@ -5,13 +5,6 @@ import android.os.Bundle;
 
 public class VendaActivity extends BaseMenuActivity {
 
-//    public static final String VENDA_SHARED_PREF = "VENDA_PREFS";
-
-
-//    private VendaBuilder venda = new VendaBuilder();
-//    private ItemAdapter adapter;
-//    private ListView produtoList;
-//    private VendaController controler = new VendaController();
 
     public static final String VENDA_MENU = "Nova Venda";
     public static final String BUSCA_VENDA_MENU = "Buscar Vendas";

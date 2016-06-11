@@ -22,10 +22,8 @@ import joaquimneto.com.alimec.vendas.VendasModule;
 public class IntialLoadController {
 
     private IServerModule server = ServerModule.getInstance();
-    private IProdutoRepository repo = AbstractDaoFactory.getFactory().getProdutoRepository();
 
     public void initContext(Context context) {
-
         DatabaseHelper.initiate(context);
         ConfiguracaoPrivada.getInstance().initiate(context);
         Locale.setDefault(Locale.ENGLISH);
@@ -44,7 +42,7 @@ public class IntialLoadController {
     public boolean atualizarProdutos() throws ServerModuleException, DBModuleException {
 
         ProdutoTO[] produtos = server.importarProdutos();
-
+        IProdutoRepository repo = AbstractDaoFactory.getFactory().getProdutoRepository();
         repo.limparProdutos();
         repo.addProdutos(produtos);
 
